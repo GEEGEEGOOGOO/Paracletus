@@ -1,0 +1,1074 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Wieesion</title>
+  <style>
+    /* Floating Capsule Theme (Cluely-inspired) */
+
+    :root {
+      --capsule-bg: rgba(20, 20, 20, 0.75);
+      /* More translucent */
+      --capsule-border: rgba(255, 255, 255, 0.15);
+      --capsule-glow: rgba(0, 0, 0, 0.3);
+
+      --accent-primary: #3b82f6;
+      --accent-recording: #ef4444;
+      --accent-processing: #a855f7;
+      --accent-vision: #10b981;
+
+      --text-primary: #ffffff;
+      --text-secondary: #a1a1aa;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: transparent;
+      color: var(--text-primary);
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      user-select: none;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      padding: 20px;
+    }
+
+    .capsule {
+      min-width: 150px;
+      width: 100%;
+      min-height: 150px;
+      height: 100%;
+      /* Fill the window */
+      background: var(--capsule-bg);
+      backdrop-filter: blur(32px);
+      -webkit-backdrop-filter: blur(32px);
+      border: 2px solid var(--capsule-border);
+      border-radius: 24px;
+      box-shadow: 0 8px 32px var(--capsule-glow);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      /* Hide overflow during resize */
+      transition: background 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease, opacity 0.3s ease;
+      /* No width/height transition */
+      position: relative;
+    }
+
+    /* Resize handle indicator */
+    .capsule::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      right: 0;
+      width: 20px;
+      height: 20px;
+      background: linear-gradient(135deg, transparent 50%, rgba(255, 255, 255, 0.2) 50%);
+      border-bottom-right-radius: 22px;
+      cursor: nwse-resize;
+      -webkit-app-region: no-drag;
+    }
+
+    .capsule.recording {
+      border-color: rgba(239, 68, 68, 0.5);
+      box-shadow: 0 0 24px rgba(239, 68, 68, 0.3);
+    }
+
+    .capsule.processing {
+      border-color: rgba(168, 85, 247, 0.5);
+      box-shadow: 0 0 24px rgba(168, 85, 247, 0.3);
+    }
+
+    /* Header */
+    .header {
+      padding: 14px 18px;
+      /* Original padding */
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      -webkit-app-region: drag;
+      /* ADDED DRAG HERE */
+    }
+
+    .status-indicator {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-secondary);
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--text-secondary);
+      transition: all 0.3s ease;
+    }
+
+    .status-dot.active {
+      background: var(--accent-recording);
+      box-shadow: 0 0 10px var(--accent-recording);
+      animation: pulse 1.5s infinite;
+    }
+
+    .status-dot.processing {
+      background: var(--accent-processing);
+      box-shadow: 0 0 10px var(--accent-processing);
+      animation: pulse 1.5s infinite;
+    }
+
+    .vision-badge {
+      font-size: 11px;
+      padding: 3px 8px;
+      border-radius: 6px;
+      background: rgba(16, 185, 129, 0.15);
+      color: var(--accent-vision);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      display: none;
+      align-items: center;
+      gap: 5px;
+      font-weight: 500;
+    }
+
+    .vision-badge.visible {
+      display: flex;
+      animation: fadeIn 0.3s ease;
+    }
+
+    .controls {
+      display: flex;
+      gap: 8px;
+      -webkit-app-region: no-drag;
+    }
+
+    .icon-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-secondary);
+      cursor: pointer;
+      padding: 6px;
+      border-radius: 6px;
+      transition: all 0.2s;
+      font-size: 16px;
+      width: 28px;
+      height: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .icon-btn:hover {
+      color: var(--text-primary);
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    /* Content */
+    /* Content */
+    .content {
+      padding: 18px;
+      flex: 1;
+      /* Fill available space */
+      min-height: 0;
+      /* Flexbox fix for scrolling */
+      overflow-y: auto;
+      -webkit-app-region: no-drag;
+    }
+
+    .content::-webkit-scrollbar {
+      width: 12px;
+      /* Thicker scrollbar */
+    }
+
+    .content::-webkit-scrollbar-track {
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 6px;
+    }
+
+    .content::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.25);
+      /* More visible */
+      border-radius: 6px;
+      border: 2px solid transparent;
+      background-clip: padding-box;
+    }
+
+    .content::-webkit-scrollbar-thumb:hover {
+      background: rgba(255, 255, 255, 0.35);
+      background-clip: padding-box;
+    }
+
+    .message {
+      margin-bottom: 14px;
+      font-size: 14px;
+      line-height: 1.6;
+      animation: slideIn 0.3s ease;
+    }
+
+    .message.user {
+      color: var(--text-secondary);
+      font-style: italic;
+      font-size: 13px;
+      padding: 10px 12px;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 10px;
+      border-left: 2px solid var(--accent-primary);
+    }
+
+    .message.ai {
+      color: var(--text-primary);
+      padding: 12px;
+      background: rgba(255, 255, 255, 0.03);
+      border-radius: 10px;
+    }
+
+    .welcome-message {
+      color: var(--text-secondary);
+      font-size: 13px;
+      text-align: center;
+      padding: 20px;
+    }
+
+    /* Footer */
+    .footer {
+      padding: 14px 18px;
+      border-top: 1px solid rgba(255, 255, 255, 0.06);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 12px;
+      -webkit-app-region: no-drag;
+    }
+
+    .action-btn {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: var(--text-primary);
+      padding: 10px 18px;
+      border-radius: 20px;
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      font-weight: 500;
+    }
+
+    .action-btn:hover {
+      background: rgba(255, 255, 255, 0.1);
+      transform: translateY(-1px);
+    }
+
+    .action-btn.record {
+      background: var(--accent-recording);
+      border-color: var(--accent-recording);
+      color: white;
+      font-weight: 600;
+      padding: 12px 24px;
+    }
+
+    .action-btn.record:hover {
+      background: #dc2626;
+      box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+    }
+
+    .action-btn.record.active {
+      animation: pulse 1.5s infinite;
+    }
+
+    /* Animations */
+    @keyframes pulse {
+      0% {
+        opacity: 1;
+      }
+
+      50% {
+        opacity: 0.7;
+      }
+
+      100% {
+        opacity: 1;
+      }
+    }
+
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateY(8px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+      }
+
+      to {
+        opacity: 1;
+      }
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    /* Summary Panel */
+    .summary-panel {
+      padding: 16px;
+      background: rgba(255, 255, 255, 0.03);
+      border-radius: 12px;
+      margin-bottom: 12px;
+      animation: slideIn 0.3s ease;
+    }
+
+    .summary-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--accent-primary);
+      margin-bottom: 10px;
+    }
+
+    .summary-content {
+      font-size: 13px;
+      line-height: 1.6;
+      color: var(--text-primary);
+      white-space: pre-wrap;
+    }
+
+    .copy-btn {
+      margin-top: 10px;
+      padding: 6px 12px;
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 6px;
+      color: var(--text-primary);
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .copy-btn:hover {
+      background: rgba(255, 255, 255, 0.15);
+    }
+
+    .action-btn.end-call {
+      background: rgba(239, 68, 68, 0.2);
+      border-color: rgba(239, 68, 68, 0.4);
+      color: var(--accent-recording);
+    }
+
+    .action-btn.end-call:hover {
+      background: rgba(239, 68, 68, 0.3);
+    }
+
+    /* Resize Handles */
+    .resize-handle {
+      position: absolute;
+      z-index: 100;
+      transition: background 0.2s ease;
+    }
+
+    /* Edge handles - Make them thicker for easier grabbing */
+    .resize-handle.n {
+      top: 0;
+      left: 20px;
+      right: 20px;
+      height: 10px;
+      cursor: ns-resize;
+    }
+
+    .resize-handle.s {
+      bottom: 0;
+      left: 20px;
+      right: 20px;
+      height: 10px;
+      cursor: ns-resize;
+    }
+
+    .resize-handle.e {
+      top: 20px;
+      bottom: 20px;
+      right: 0;
+      width: 10px;
+      cursor: ew-resize;
+    }
+
+    .resize-handle.w {
+      top: 20px;
+      bottom: 20px;
+      left: 0;
+      width: 10px;
+      cursor: ew-resize;
+    }
+
+    /* Corner handles - Make them bigger */
+    .resize-handle.ne {
+      top: 0;
+      right: 0;
+      width: 20px;
+      height: 20px;
+      cursor: nesw-resize;
+    }
+
+    .resize-handle.nw {
+      top: 0;
+      left: 0;
+      width: 20px;
+      height: 20px;
+      cursor: nwse-resize;
+    }
+
+    .resize-handle.se {
+      bottom: 0;
+      right: 0;
+      width: 20px;
+      height: 20px;
+      cursor: nwse-resize;
+    }
+
+    .resize-handle.sw {
+      bottom: 0;
+      left: 0;
+      width: 20px;
+      height: 20px;
+      cursor: nesw-resize;
+    }
+
+    /* Hover effects to show where you can resize */
+    .resize-handle:hover {
+      background: rgba(59, 130, 246, 0.2);
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="capsule" id="capsule">
+    <!-- Resize Handles -->
+    <div class="resize-handle n" data-direction="n"></div>
+    <div class="resize-handle s" data-direction="s"></div>
+    <div class="resize-handle e" data-direction="e"></div>
+    <div class="resize-handle w" data-direction="w"></div>
+    <div class="resize-handle ne" data-direction="ne"></div>
+    <div class="resize-handle nw" data-direction="nw"></div>
+    <div class="resize-handle se" data-direction="se"></div>
+    <div class="resize-handle sw" data-direction="sw"></div>
+
+    <!-- Header -->
+    <div class="header">
+      <div class="status-indicator">
+        <div class="status-dot" id="status-dot"></div>
+        <span id="status-text">Ready</span>
+        <div class="vision-badge" id="vision-badge">
+          <span>👁️</span> Vision
+        </div>
+      </div>
+      <div class="controls">
+        <button class="icon-btn" id="minimize-btn" title="Minimize">−</button>
+        <button class="icon-btn" id="close-btn" title="Close">×</button>
+      </div>
+    </div>
+
+    <!-- Content -->
+    <div class="content" id="content">
+      <div class="welcome-message">
+        Hi! I'm your Interview Buddy. Click the mic to start, or ask "What's on my screen?" for visual help.
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+      <!-- Hidden file input -->
+      <input type="file" id="file-input" accept=".pdf,.png,.jpg,.jpeg,.webp,.gif" style="display: none;">
+
+      <button class="action-btn" id="upload-btn" title="Upload Image or PDF">
+        <span>📎</span>
+        <span>Upload File</span>
+      </button>
+      <button class="action-btn record" id="record-btn">
+        <span id="record-icon">🎤</span>
+        <span id="record-label">Start Recording</span>
+      </button>
+      <button class="action-btn end-call hidden" id="end-call-btn">
+        <span>📝</span>
+        <span>End Call</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
+  <script>
+    // ============================================
+    // FLOATING CAPSULE LOGIC
+    // ============================================
+
+    const socket = io('http://localhost:3000', {
+      auth: { token: 'desktop-app-token' },
+      transports: ['websocket']
+    });
+
+    // Elements
+    const capsule = document.getElementById('capsule');
+    const recordBtn = document.getElementById('record-btn');
+    const recordLabel = document.getElementById('record-label');
+    const statusDot = document.getElementById('status-dot');
+    const statusText = document.getElementById('status-text');
+    const contentDiv = document.getElementById('content');
+    const visionBadge = document.getElementById('vision-badge');
+    const endCallBtn = document.getElementById('end-call-btn');
+    const uploadBtn = document.getElementById('upload-btn');
+    const fileInput = document.getElementById('file-input');
+
+    // Session tracking
+    let isSessionActive = false;
+
+    // State
+    let isRecording = false;
+    let mediaRecorder = null;
+    let audioChunks = [];
+    let currentTranscript = '';
+
+    // Window Controls
+    document.getElementById('minimize-btn').addEventListener('click', () => window.electron.minimizeWindow());
+    document.getElementById('close-btn').addEventListener('click', () => window.electron.closeWindow());
+
+    // File Upload Logic
+    uploadBtn.addEventListener('click', () => {
+      fileInput.click();
+    });
+
+    fileInput.addEventListener('change', async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      console.log('📎 File selected:', file.name, file.type);
+
+      // Validate file type
+      const validTypes = ['application/pdf', 'image/png', 'image/jpeg', 'image/jpg', 'image/webp', 'image/gif'];
+      if (!validTypes.includes(file.type)) {
+        showAiMessage('⚠️ Unsupported file type. Please upload images (PNG, JPG, GIF, WEBP) or PDFs.');
+        fileInput.value = '';
+        return;
+      }
+
+      // Validate file size (max 10MB)
+      const maxSize = 10 * 1024 * 1024; // 10MB
+      if (file.size > maxSize) {
+        showAiMessage('⚠️ File too large. Maximum size is 10MB.');
+        fileInput.value = '';
+        return;
+      }
+
+
+      // Show file selected message
+      showUserMessage(`📎 Uploaded: ${file.name}`);
+
+      // No need to ask for question - backend uses default analysis prompt
+      showUserMessage('Analyzing file...');
+      updateUIState('processing');
+
+      // Read file as base64
+      const reader = new FileReader();
+      reader.onload = async (event) => {
+        try {
+          const base64Data = event.target.result.split(',')[1]; // Remove data:xxx;base64, prefix
+
+          console.log('📤 Sending file to server...');
+
+          // Send to server via socket (question is ignored in backend)
+          socket.emit('file_upload', {
+            fileData: base64Data,
+            fileName: file.name,
+            fileType: file.type,
+            question: 'Analyze this file' // Placeholder - backend uses default prompt
+          });
+
+        } catch (error) {
+          console.error('❌ Error processing file:', error);
+          showAiMessage('⚠️ Failed to process file: ' + error.message);
+          stopProcessingState();
+        }
+      };
+
+      reader.onerror = () => {
+        showAiMessage('⚠️ Failed to read file.');
+        stopProcessingState();
+        fileInput.value = '';
+      };
+
+      reader.readAsDataURL(file);
+
+      // Clear file input
+      fileInput.value = '';
+    });
+
+    // Socket Events
+    socket.on('connect', () => {
+      console.log('✅ Connected to server');
+      statusText.textContent = 'Ready';
+    });
+
+    socket.on('transcript_final', async (data) => {
+      const text = data.text || data.data?.text;
+      if (text) {
+        currentTranscript = text;
+
+        // Check for screen intent first
+        const isScreenQuery = await checkForScreenIntent(text);
+
+        // Only process as regular query if NOT a screen query
+        if (!isScreenQuery) {
+          showUserMessage(text);
+        }
+      }
+    });
+
+    socket.on('status_update', (data) => {
+      if (data.status === 'ignored') {
+        statusText.textContent = data.message;
+        statusDot.style.background = '#6b7280'; // Grey for ignored
+        setTimeout(() => {
+          statusText.textContent = 'Ready';
+          statusDot.style.background = '#ef4444'; // Back to red (recording)
+        }, 2000);
+      }
+    });
+
+    socket.on('answer_final', (data) => {
+      const answer = data.answer || data.data?.answer;
+      if (answer) {
+        showAiMessage(answer);
+        stopProcessingState();
+      }
+    });
+
+    socket.on('error', (err) => {
+      console.error('Socket error:', err);
+      showAiMessage('⚠️ Error: ' + (err.message || 'Something went wrong'));
+      stopProcessingState();
+    });
+
+    socket.on('session_summary', (data) => {
+      console.log('📝 Session summary received');
+      if (data.success) {
+        displaySummary(data.summary, data.email);
+        endCallBtn.classList.add('hidden');
+        isSessionActive = false;
+      }
+    });
+
+    // End Call Button - Just close the app/session
+    endCallBtn.addEventListener('click', () => {
+      console.log('🛑 Ending session...');
+      // Just stop recording and hide button, don't generate summary
+      if (isRecording) {
+        stopRecording(false); // false = don't restart
+      }
+      isSessionActive = false;
+      endCallBtn.classList.add('hidden');
+      statusText.textContent = 'Ready';
+
+      // Optional: Close the window/app if requested
+      // window.close(); 
+    });
+
+    // Recording Logic
+    recordBtn.addEventListener('click', toggleRecording);
+
+    async function toggleRecording() {
+      if (isRecording) {
+        stopRecording(false); // Manual stop = no restart
+      } else {
+        startRecording();
+      }
+    }
+
+    let audioContext;
+    let analyser;
+    let dataArray;
+    let silenceStart = null;
+    let hasSpoken = false;
+    let vadInterval;
+    let isAutoRestarting = false;
+
+    async function startRecording() {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        mediaRecorder = new MediaRecorder(stream);
+        audioChunks = [];
+
+        // VAD Setup
+        if (!audioContext) {
+          audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        const source = audioContext.createMediaStreamSource(stream);
+        analyser = audioContext.createAnalyser();
+        analyser.fftSize = 256;
+        source.connect(analyser);
+        dataArray = new Uint8Array(analyser.frequencyBinCount);
+
+        // Reset VAD state
+        silenceStart = null;
+        hasSpoken = false;
+
+        // Start VAD Loop
+        clearInterval(vadInterval);
+        vadInterval = setInterval(() => {
+          if (!isRecording) return;
+
+          analyser.getByteFrequencyData(dataArray);
+
+          // Calculate average volume
+          let sum = 0;
+          for (let i = 0; i < dataArray.length; i++) {
+            sum += dataArray[i];
+          }
+          const average = sum / dataArray.length;
+
+          // Thresholds
+          const SPEECH_THRESHOLD = 15; // Increased from 10 to reduce noise triggers
+          const SILENCE_DURATION = 3000; // 3 seconds
+
+          if (average > SPEECH_THRESHOLD) {
+            if (!hasSpoken) console.log('🗣️ Speech detected');
+            hasSpoken = true;
+            silenceStart = null;
+            statusText.textContent = 'Listening...';
+            statusDot.style.background = '#ef4444'; // Red
+          } else if (hasSpoken) {
+            // Silence after speech
+            if (!silenceStart) {
+              silenceStart = Date.now();
+            } else if (Date.now() - silenceStart > SILENCE_DURATION) {
+              console.log('🤫 Silence detected (3s), processing...');
+              stopRecording(true); // true = auto-restart
+            }
+          }
+        }, 100); // Check every 100ms
+
+        mediaRecorder.ondataavailable = (event) => {
+          if (event.data.size > 0) audioChunks.push(event.data);
+        };
+
+        mediaRecorder.onstop = () => {
+          const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+          sendAudio(audioBlob);
+          stream.getTracks().forEach(track => track.stop());
+
+          // Auto-restart if requested
+          if (isAutoRestarting) {
+            isAutoRestarting = false;
+            setTimeout(() => {
+              if (!isRecording) startRecording(); // Restart
+            }, 100);
+          }
+        };
+
+        mediaRecorder.start();
+        isRecording = true;
+        updateUIState('recording');
+
+        // Start session if not already active
+        if (!isSessionActive) {
+          // socket.emit('start_session'); // Optional: We don't need summaries anymore
+          isSessionActive = true;
+          endCallBtn.classList.remove('hidden');
+        }
+
+      } catch (error) {
+        console.error('Microphone error:', error);
+        showAiMessage('⚠️ Microphone access denied. Please enable microphone permissions.');
+      }
+    }
+
+    function stopRecording(restart = false) {
+      if (mediaRecorder && isRecording) {
+        clearInterval(vadInterval);
+        isAutoRestarting = restart;
+        mediaRecorder.stop();
+        isRecording = false;
+        if (!restart) {
+          updateUIState('processing');
+        } else {
+          statusText.textContent = 'Processing...';
+          statusDot.style.background = '#a855f7'; // Purple
+        }
+      }
+    }
+
+    function sendAudio(blob) {
+      const reader = new FileReader();
+      reader.readAsDataURL(blob);
+      reader.onloadend = () => {
+        const base64Audio = reader.result.split(',')[1];
+        socket.emit('audio_file', {
+          audio: base64Audio,
+          format: 'webm'
+        });
+      };
+    }
+
+    // Intent Detection for Screen Capture
+    async function checkForScreenIntent(text) {
+      const lowerText = text.toLowerCase();
+      const screenKeywords = ['screen', 'see', 'look', 'what is this', 'read this', 'show', 'display'];
+
+      const hasIntent = screenKeywords.some(keyword => lowerText.includes(keyword));
+
+      if (hasIntent) {
+        console.log('👁️ Screen intent detected!');
+        visionBadge.classList.add('visible');
+
+        // Show user message
+        showUserMessage(text);
+
+        // Set processing state
+        updateUIState('processing');
+
+        try {
+          const result = await window.electron.captureScreen();
+
+          if (result.success && result.image) {
+            console.log('📸 Screen captured, sending to AI...');
+
+            // Send visual query with text + image
+            socket.emit('visual_query', {
+              text: text,
+              image: result.image
+            });
+
+          } else {
+            console.error('Screen capture failed:', result.error);
+            showAiMessage('⚠️ Failed to capture screen');
+            stopProcessingState();
+          }
+        } catch (err) {
+          console.error('Screen capture error:', err);
+          showAiMessage('⚠️ Screen capture error: ' + err.message);
+          stopProcessingState();
+        }
+
+        setTimeout(() => visionBadge.classList.remove('visible'), 5000);
+        return true;  // Indicate that screen intent was handled
+      }
+
+      return false;  // No screen intent detected
+    }
+
+    // UI Updates
+    function updateUIState(state) {
+      if (state === 'recording') {
+        capsule.classList.add('recording');
+        recordBtn.classList.add('active');
+        recordLabel.textContent = 'Stop Recording';
+        statusDot.className = 'status-dot active';
+        statusText.textContent = 'Listening...';
+      } else if (state === 'processing') {
+        capsule.classList.remove('recording');
+        capsule.classList.add('processing');
+        recordBtn.classList.remove('active');
+        recordLabel.textContent = 'Start Recording';
+        statusDot.className = 'status-dot processing';
+        statusText.textContent = 'Thinking...';
+      } else {
+        capsule.classList.remove('recording', 'processing');
+        recordBtn.classList.remove('active');
+        recordLabel.textContent = 'Start Recording';
+        statusDot.className = 'status-dot';
+        statusText.textContent = 'Ready';
+      }
+    }
+
+    function stopProcessingState() {
+      updateUIState('ready');
+    }
+
+    function showUserMessage(text) {
+      // Remove welcome message if present
+      const welcome = contentDiv.querySelector('.welcome-message');
+      if (welcome) welcome.remove();
+
+      const div = document.createElement('div');
+      div.className = 'message user';
+      div.textContent = `"${text}"`;
+      contentDiv.appendChild(div);
+      scrollToBottom();
+    }
+
+    function showAiMessage(text) {
+      const div = document.createElement('div');
+      div.className = 'message ai';
+
+      // Simple markdown parsing
+      const formatted = text
+        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+        .replace(/\n/g, '<br>');
+      div.innerHTML = formatted;
+
+      contentDiv.appendChild(div);
+      scrollToBottom();
+    }
+
+    function scrollToBottom() {
+      contentDiv.scrollTop = contentDiv.scrollHeight;
+    }
+
+    function displaySummary(summary, email) {
+      // Remove welcome message
+      const welcome = contentDiv.querySelector('.welcome-message');
+      if (welcome) welcome.remove();
+
+      // Summary panel
+      const summaryPanel = document.createElement('div');
+      summaryPanel.className = 'summary-panel';
+      summaryPanel.innerHTML = `
+        <div class="summary-title">📝 Call Summary</div>
+        <div class="summary-content">${summary.replace(/\n/g, '<br>')}</div>
+        <button class="copy-btn" onclick="navigator.clipboard.writeText(\`${summary.replace(/`/g, '\\`')}\`)">Copy Summary</button>
+      `;
+      contentDiv.appendChild(summaryPanel);
+
+      // Email panel
+      const emailPanel = document.createElement('div');
+      emailPanel.className = 'summary-panel';
+      emailPanel.innerHTML = `
+        <div class="summary-title">✉️ Follow-up Email</div>
+        <div class="summary-content">${email.replace(/\n/g, '<br>')}</div>
+        <button class="copy-btn" onclick="navigator.clipboard.writeText(\`${email.replace(/`/g, '\\`')}\`)">Copy Email</button>
+      `;
+      contentDiv.appendChild(emailPanel);
+
+      scrollToBottom();
+      stopProcessingState();
+    }
+
+    // ============================================
+    // RESIZE LOGIC (360-Degree)
+    // ============================================
+    let isResizing = false;
+    let resizeDirection = '';
+    let startX, startY, startWidth, startHeight, startLeft, startTop;
+
+    // Add listeners to all resize handles
+    document.querySelectorAll('.resize-handle').forEach(handle => {
+      handle.addEventListener('mousedown', async (e) => {
+        isResizing = true;
+        resizeDirection = handle.dataset.direction;
+        startX = e.screenX;
+        startY = e.screenY;
+
+        // Get current window bounds from main process
+        const bounds = await window.electron.getWindowBounds();
+        if (bounds) {
+          startWidth = bounds.width;
+          startHeight = bounds.height;
+          startLeft = bounds.x;
+          startTop = bounds.y;
+        } else {
+          // Fallback if IPC fails
+          const rect = capsule.getBoundingClientRect();
+          startWidth = rect.width;
+          startHeight = rect.height;
+          startLeft = 0; startTop = 0; // Won't work well for left/top resize
+        }
+
+        // Prevent text selection
+        document.body.style.userSelect = 'none';
+
+        // Add global listeners
+        document.addEventListener('mousemove', handleResize);
+        document.addEventListener('mouseup', stopResize);
+
+        e.stopPropagation(); // Prevent bubbling
+      });
+    });
+
+    function handleResize(e) {
+      if (!isResizing) return;
+
+      const deltaX = e.screenX - startX;
+      const deltaY = e.screenY - startY;
+
+      let newWidth = startWidth;
+      let newHeight = startHeight;
+      let newX = startLeft;
+      let newY = startTop;
+      let updatePos = false;
+
+      // Calculate new dimensions based on direction
+      if (resizeDirection.includes('e')) {
+        newWidth = startWidth + deltaX;
+      }
+      if (resizeDirection.includes('w')) {
+        newWidth = startWidth - deltaX;
+        newX = startLeft + deltaX;
+        updatePos = true;
+      }
+      if (resizeDirection.includes('s')) {
+        newHeight = startHeight + deltaY;
+      }
+      if (resizeDirection.includes('n')) {
+        newHeight = startHeight - deltaY;
+        newY = startTop + deltaY;
+        updatePos = true;
+      }
+
+      // Enforce min dimensions (200x200)
+      // Note: If resizing left/top, we need to adjust X/Y if we hit min width/height
+      if (newWidth < 200) {
+        newWidth = 200;
+        if (resizeDirection.includes('w')) newX = startLeft + (startWidth - 200);
+      }
+      if (newHeight < 200) {
+        newHeight = 200;
+        if (resizeDirection.includes('n')) newY = startTop + (startHeight - 200);
+      }
+
+      // Send resize command to main process
+      const resizeData = { width: newWidth, height: newHeight };
+      if (updatePos) {
+        resizeData.x = newX;
+        resizeData.y = newY;
+      }
+
+      window.electron.resizeWindow(resizeData);
+    }
+
+    function stopResize() {
+      isResizing = false;
+      document.body.style.userSelect = '';
+      document.removeEventListener('mousemove', handleResize);
+      document.removeEventListener('mouseup', stopResize);
+    }
+    // Listen for manual capture shortcut
+    if (window.electron && window.electron.onTriggerManualCapture) {
+      window.electron.onTriggerManualCapture(() => {
+        console.log('⌨️ Manual capture shortcut detected');
+        // Simulate a visual query
+        checkForScreenIntent("What is on my screen?");
+      });
+    }
+
+  </script>
+</body>
+
+</html>
