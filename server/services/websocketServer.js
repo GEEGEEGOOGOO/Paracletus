@@ -12,6 +12,9 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import os from 'os';
+import { processFile } from '../handlers/fileProcessor.js';
+import { analyze as analyzeDocument, chat as chatWithDocument } from './documentAI.js';
+
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -86,6 +89,10 @@ export const initializeWebSocket = (httpServer) => {
     // AI Provider and Model settings
     let currentProvider = 'groq';
     let currentModel = process.env.GROQ_MODEL || 'llama-3.1-8b-instant';
+
+    // Document context (for file uploads)
+    let fileContext = null;
+
 
     // Handle authentication
     socket.on('authenticate', async (data) => {
@@ -272,8 +279,21 @@ export const initializeWebSocket = (httpServer) => {
         try {
           let transcript;
 
-          // Try Groq first (FREE!)
-          if (GROQ_API_KEY) {
+          // Try OpenAI Whisper first
+          if (OPENAI_API_KEY) {
+            const openai = new OpenAI({ apiKey: OPENAI_API_KEY.trim() });
+            console.log('🎯 Sending to OpenAI Whisper...');
+
+            const transcription = await openai.audio.transcriptions.create({
+              file: fs.createReadStream(tempFile),
+              model: 'whisper-1',
+              language: 'en'
+            });
+
+            transcript = transcription.text.trim();
+            console.log(`✅ OpenAI Whisper transcription: "${transcript}"`);
+          } else if (GROQ_API_KEY) {
+            // Fallback to Groq
             try {
               const groq = new Groq({ apiKey: GROQ_API_KEY.trim() });
               console.log('🎯 Sending to Groq Whisper (FREE & FAST!)...');
@@ -373,8 +393,9 @@ export const initializeWebSocket = (httpServer) => {
             if (t.length < 10) {
               // Exception: Allow meaningful short phrases
               const allowedShort = ['yes please', 'no thanks', 'go ahead', 'continue',
-                'next one', 'try again', 'start over'];
-              if (allowedShort.some(phrase => t === phrase)) return true;
+                'next one', 'try again', 'start over', 'thank you', 'thanks',
+                'ok', 'okay', 'hello', 'hi', 'hey', 'good morning', 'good evening'];
+              if (allowedShort.some(phrase => t.includes(phrase))) return true;
 
               // Otherwise, too short = chatter
               return false;
@@ -824,8 +845,114 @@ ${analysisContent}`;
       }
     });
 
+    // NEW: Multi-format document upload handler
+    socket.on('file:upload', async (data) => {
+      try {
+        const { fileData, fileName, mimeType } = data;
+
+        console.log(`📎 Multi-format file upload: ${fileName} (${mimeType})`);
+
+        if (!fileData) {
+          socket.emit('file:error', { message: 'No file data provided' });
+          return;
+        }
+
+        // Convert base64 to buffer
+        const fileBuffer = Buffer.from(fileData, 'base64');
+        console.log(`📦 File size: ${(fileBuffer.length / 1024).toFixed(2)} KB`);
+
+        // Process file with unified processor
+        const processed = await processFile(fileBuffer, fileName, mimeType);
+        console.log(`✅ File processed: type=${processed.type}`);
+
+        // Analyze document with Gemini
+        const analysis = await analyzeDocument(processed);
+        console.log(`✅ Document analyzed`);
+
+        // Store in session context
+        fileContext = {
+          fileName: fileName,
+          mimeType: mimeType,
+          extractedText: processed.text || null,
+          extractedImages: processed.images || null,
+          summary: analysis.summary,
+          keyPoints: analysis.keyPoints,
+          classification: analysis.classification,
+          timestamp: new Date().toISOString(),
+          meta: processed.meta
+        };
+
+        // Emit summary and ready signal
+        socket.emit('file:summary', {
+          fileName: fileName,
+          summary: analysis.summary,
+          keyPoints: analysis.keyPoints,
+          classification: analysis.classification,
+          followUpHint: analysis.followUpHint
+        });
+
+        socket.emit('file:ready', {
+          fileName: fileName,
+          message: 'Document is ready for questions'
+        });
+
+      } catch (error) {
+        console.error('❌ File upload error:', error.message);
+        socket.emit('file:error', {
+          message: `Failed to process file: ${error.message}`
+        });
+      }
+    });
+
+    // NEW: Document chat handler
+    socket.on('file:ask', async (data) => {
+      try {
+        const { question } = data;
+
+        console.log(`💬 Document question: "${question}"`);
+
+        if (!fileContext) {
+          socket.emit('file:error', { message: 'No document uploaded yet' });
+          return;
+        }
+
+        if (!question || question.trim().length === 0) {
+          socket.emit('file:error', { message: 'Question cannot be empty' });
+          return;
+        }
+
+        // Chat with document using RAG-lite
+        const result = await chatWithDocument(question, fileContext);
+        console.log(`✅ Document answer generated`);
+
+        socket.emit('file:answer', {
+          question: question,
+          answer: result.answer,
+          fileName: fileContext.fileName,
+          context: result.context
+        });
+
+        // Update conversation history
+        conversationHistory.push({
+          role: 'user',
+          content: `[Document: ${fileContext.fileName}] ${question}`
+        });
+        conversationHistory.push({
+          role: 'assistant',
+          content: result.answer
+        });
+
+      } catch (error) {
+        console.error('❌ Document chat error:', error.message);
+        socket.emit('file:error', {
+          message: `Failed to answer question: ${error.message}`
+        });
+      }
+    });
+
     // Start Session
     socket.on('start_session', () => {
+
       console.log('🎬 Session started');
       isSessionActive = true;
       sessionTranscript = [];
@@ -846,48 +973,34 @@ ${analysisContent}`;
       }
 
       try {
-        // Generate summary using Gemini
+        // Generate summary
         const summary = await generateSessionSummary(sessionTranscript);
+        socket.emit('session_summary', { summary });
 
         // Generate follow-up email
-        const email = await generateFollowUpEmail(summary);
+        const email = await generateFollowUpEmail(sessionTranscript);
+        socket.emit('follow_up_email', { email });
 
-        socket.emit('session_summary', {
-          summary,
-          email,
-          success: true
-        });
-
+        socket.emit('session_ended', { success: true });
       } catch (error) {
-        console.error('❌ Error generating summary:', error);
-        socket.emit('session_ended', {
-          success: false,
-          message: 'Failed to generate summary'
-        });
+        console.error('Error generating summary:', error);
+        socket.emit('error', { type: 'summary_error', message: 'Failed to generate summary' });
       }
     });
 
-    // Initialize STT connection (Deepgram or OpenAI Whisper)
+    // Initialize STT connection (Local Whisper, Deepgram, or Mock)
     async function initializeSTTConnection(socket) {
       try {
-        // Try Deepgram first (faster, real-time)
-        const DEEPGRAM_API_KEY = process.env.DEEPGRAM_API_KEY;
-        if (DEEPGRAM_API_KEY) {
-          console.log('📡 Initializing Deepgram STT (real-time)');
-          return await initializeDeepgramSTT(socket, DEEPGRAM_API_KEY);
-        }
+        // Always use local Whisper first (no API key needed!)
+        console.log('📡 Initializing Local Whisper STT');
+        return await initializeWhisperSTT(socket);
 
-        // Fallback to OpenAI Whisper
-        const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
-        if (OPENAI_API_KEY) {
-          console.log('📡 Initializing OpenAI Whisper STT (batch mode)');
-          return await initializeWhisperSTT(socket, OPENAI_API_KEY);
-        }
-
-        // No API keys - use mock
-        console.warn('⚠️ No STT API keys found (DEEPGRAM_API_KEY or OPENAI_API_KEY)');
-        console.warn('⚠️ Using mock STT for testing');
-        initializeMockSTT(socket);
+        // Deepgram fallback (if needed in future)
+        // const DEEPGRAM_API_KEY = process.env.DEEPGRAM_API_KEY;
+        // if (DEEPGRAM_API_KEY) {
+        //   console.log('📡 Initializing Deepgram STT (real-time)');
+        //   return await initializeDeepgramSTT(socket, DEEPGRAM_API_KEY);
+        // }
 
       } catch (error) {
         console.error('Failed to initialize STT:', error);
@@ -1011,112 +1124,134 @@ ${analysisContent}`;
       console.log('✅ Deepgram STT initialized');
     }
 
-    // Initialize OpenAI Whisper STT (batch processing)
-    async function initializeWhisperSTT(socket, apiKey) {
-      const openai = new OpenAI({ apiKey: apiKey.trim() });
+    // Initialize Local OpenAI Whisper STT (Python service)
+    async function initializeWhisperSTT(socket) {
+      const { spawn } = require('child_process');
+      const pythonPath = 'python'; // or 'python3' on some systems
+      const scriptPath = path.join(__dirname, '../whisper_service.py');
 
-      whisperInterval = setInterval(async () => {
-        if (audioBuffer.length === 0) return;
+      console.log('🐍 Starting local Whisper service...');
+      console.log('   Python script:', scriptPath);
+
+      // Spawn Python process
+      const whisperProcess = spawn(pythonPath, [scriptPath], {
+        stdio: ['pipe', 'pipe', 'pipe']
+      });
+
+      let isWhisperReady = false;
+      let audioQueue = [];
+
+      // Handle stdout (transcriptions)
+      whisperProcess.stdout.on('data', (data) => {
+        const output = data.toString().trim();
+        console.log('[Whisper] Output:', output);
 
         try {
-          // Combine audio chunks
-          const totalLength = audioBuffer.reduce((sum, chunk) => sum + chunk.length, 0);
-          const combinedBuffer = Buffer.concat(audioBuffer, totalLength);
-
-          // Clear buffer
-          audioBuffer = [];
-
-          // Skip if too short (less than 1 second of audio)
-          if (combinedBuffer.length < 16000 * 2) {
-            return;
+          const result = JSON.parse(output);
+          if (result.success && result.text) {
+            console.log('📝 Whisper transcription:', result.text);
+            handleQuestionDetected(result.text, socket);
+          } else if (result.error) {
+            console.error('❌ Whisper error:', result.error);
           }
-
-          // Create temp file for Whisper API
-          const tempDir = path.join(__dirname, '../../temp');
-          if (!fs.existsSync(tempDir)) {
-            fs.mkdirSync(tempDir, { recursive: true });
-          }
-
-          const tempFile = path.join(tempDir, `audio_${Date.now()}.wav`);
-
-          // Write WAV file
-          const wavBuffer = createWavBuffer(combinedBuffer, 16000);
-          fs.writeFileSync(tempFile, wavBuffer);
-
-          // Send to Whisper API
-          const transcription = await openai.audio.transcriptions.create({
-            file: fs.createReadStream(tempFile),
-            model: 'whisper-1',
-            language: 'en',
-            response_format: 'verbose_json'
-          });
-
-          // Clean up temp file
-          fs.unlinkSync(tempFile);
-
-          const transcript = transcription.text?.trim();
-
-          if (transcript && transcript.length > 0) {
-            // Emit interim result
-            socket.emit('transcript_interim', {
-              data: {
-                text: transcript,
-                confidence: 0.9
-              }
-            });
-
-            // Add to current transcript
-            currentTranscript += ' ' + transcript;
-            const fullText = currentTranscript.trim();
-
-            // Check if it's a complete question
-            const wordCount = fullText.split(' ').length;
-            if (fullText.includes('?') || wordCount >= 8) {
-              // Emit final transcript
-              socket.emit('transcript_final', {
-                data: {
-                  text: fullText,
-                  confidence: 0.9,
-                  speaker: 0
-                }
-              });
-
-              console.log('📝 Final transcript:', fullText);
-
-              if (!isProcessingQuestion) {
-                isProcessingQuestion = true;
-                handleQuestionDetected(fullText, socket);
-                currentTranscript = ''; // Reset for next question
-
-                setTimeout(() => {
-                  isProcessingQuestion = false;
-                }, 2000);
-              }
-            }
-          }
-
-        } catch (error) {
-          console.error('❌ Whisper transcription error:', error.message);
+        } catch (e) {
+          // Not JSON, might be a status message
+          console.log('[Whisper Info]', output);
         }
-      }, 3000); // Process every 3 seconds
+      });
 
-      // Mark as ready
+      // Handle stderr (logs/errors)
+      whisperProcess.stderr.on('data', (data) => {
+        const message = data.toString().trim();
+        console.log('[Whisper Stderr]', message);
+
+        if (message.includes('Whisper model loaded successfully')) {
+          isWhisperReady = true;
+          console.log('✅ Local Whisper STT ready');
+
+          // Process queued audio
+          if (audioQueue.length > 0) {
+            console.log(`Processing ${audioQueue.length} queued audio chunks`);
+            const combinedBuffer = Buffer.concat(audioQueue);
+            audioQueue = [];
+            sendAudioToWhisper(combinedBuffer);
+          }
+        }
+      });
+
+      // Handle process exit
+      whisperProcess.on('close', (code) => {
+        console.log(`Whisper process exited with code ${code}`);
+        isWhisperReady = false;
+      });
+
+      whisperProcess.on('error', (err) => {
+        console.error('❌ Failed to start Whisper process:', err);
+        socket.emit('error', { message: 'Whisper service failed to start' });
+      });
+
+      // Function to send audio to Python service
+      function sendAudioToWhisper(audioBuffer) {
+        if (!isWhisperReady) {
+          console.log('Whisper not ready, queuing audio...');
+          audioQueue.push(audioBuffer);
+          return;
+        }
+
+        try {
+          // Send length prefix (4 bytes, little-endian)
+          const lengthBuffer = Buffer.allocUnsafe(4);
+          lengthBuffer.writeInt32LE(audioBuffer.length, 0);
+
+          whisperProcess.stdin.write(lengthBuffer);
+          whisperProcess.stdin.write(audioBuffer);
+
+          console.log(`📤 Sent ${audioBuffer.length} bytes to Whisper`);
+        } catch (err) {
+          console.error('Error sending audio to Whisper:', err);
+        }
+      }
+
+      // Create a mock deepgramConnection for compatibility
       deepgramConnection = {
         send: (data) => {
-          // Store audio chunks in buffer
-          audioBuffer.push(data);
+          // Accumulate audio chunks
+          audioBuffer.push(Buffer.from(data));
+
+          // Process every ~3 seconds of audio (48000 bytes = 3 seconds at 16kHz)
+          const totalLength = audioBuffer.reduce((sum, chunk) => sum + chunk.length, 0);
+          if (totalLength >= 48000) {
+            const combinedBuffer = Buffer.concat(audioBuffer);
+            audioBuffer = [];
+            sendAudioToWhisper(combinedBuffer);
+          }
         },
-        getReadyState: () => 1,
-        close: () => {
-          if (whisperInterval) {
-            clearInterval(whisperInterval);
-            whisperInterval = null;
+        finish: () => {
+          // Process remaining audio
+          if (audioBuffer.length > 0) {
+            const combinedBuffer = Buffer.concat(audioBuffer);
+            audioBuffer = [];
+            sendAudioToWhisper(combinedBuffer);
           }
         }
       };
 
-      console.log('✅ OpenAI Whisper STT initialized');
+      // Store process reference for cleanup
+      socket.whisperProcess = whisperProcess;
+
+      console.log('✅ Local Whisper STT initialized');
     }
+
+    // Handle direct text queries (e.g. from Web Speech API)
+    socket.on('text_query', async (data) => {
+      const text = data.text;
+      if (!text) return;
+
+      console.log(`📨 Text query received: "${text}"`);
+
+      // Use existing logic
+      await handleQuestionDetected(text, socket);
+    });
 
     // Create WAV file buffer from PCM data
     function createWavBuffer(pcmBuffer, sampleRate) {
@@ -1179,39 +1314,34 @@ ${analysisContent}`;
       try {
         console.log(`❓ Question detected: ${question.substring(0, 50)}...`);
 
-        // Emit question detected event
+        // 1. Emit question detected (without answer yet)
         socket.emit('question_detected', {
-          data: {
-            question: question,
-            questionId: Date.now().toString(),
-            timestamp: Date.now()
-          }
+          data: { question, timestamp: Date.now() }
         });
 
-        // Generate answer
-        const suggestion = await generateRealtimeSuggestion(
-          question,
-          currentRoleType,
-          conversationHistory,
-          userContext
-        );
-
-        // Send answer
-        socket.emit('answer_final', {
-          data: {
-            questionId: Date.now().toString(),
-            answer: suggestion.suggestion,
-            key_points: suggestion.keyPoints,
-            tone: suggestion.tone,
-            confidence_score: 0.85,
-            timestamp: Date.now()
-          }
-        });
-
-        // Add to history
+        // 2. Add to history
         conversationHistory.push({
-          role: 'interviewer',
+          role: 'user',
           content: question,
+          timestamp: new Date().toISOString()
+        });
+
+        // 3. Generate Answer
+        // Use 'groq' for text questions (unless it's visual)
+        const provider = isVisualIntent(question) ? 'gemini' : 'groq';
+
+        const answer = await generateAIResponse(question, provider, null, conversationHistory);
+
+        // 4. Emit Answer
+        socket.emit('answer_final', {
+          answer: answer,
+          question: question
+        });
+
+        // 5. Add answer to history
+        conversationHistory.push({
+          role: 'assistant',
+          content: answer,
           timestamp: new Date().toISOString()
         });
 

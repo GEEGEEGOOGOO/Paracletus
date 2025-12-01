@@ -1,7 +1,7 @@
 {
-  "name": "interviewbuddy-server",
+  "name": "adilectus-server",
   "version": "1.0.0",
-  "description": "InterviewBuddy Backend - AI Interview Assistant",
+  "description": "Adilectus Backend - AI Interview Assistant",
   "main": "server.js",
   "type": "module",
   "scripts": {
@@ -28,6 +28,7 @@
     "bcryptjs": "^2.4.3",
     "better-sqlite3": "^12.4.1",
     "cors": "^2.8.5",
+    "csv-parse": "^6.1.0",
     "dotenv": "^16.3.1",
     "express": "^4.18.2",
     "express-rate-limit": "^7.1.5",
@@ -35,6 +36,7 @@
     "groq-sdk": "^0.34.0",
     "helmet": "^7.1.0",
     "jsonwebtoken": "^9.0.2",
+    "mammoth": "^1.11.0",
     "mongoose": "^8.19.3",
     "openai": "^6.8.1",
     "pdf-parse": "^1.1.1",

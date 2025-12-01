@@ -1,138 +1,186 @@
-# Wieesion – Advanced AI Meeting Assistant
+# 🎤 Adilectus - Your AI Assistant with Vision
 
-**Wieesion** is a sleek, overlay‑style AI assistant for interviews and meetings. It provides real‑time Q&A, screen analysis, audio transcription, and automatic meeting summaries.
+**Adilectus** is a powerful desktop application that helps you with voice queries, document analysis, and real-time AI assistance. Think of it as your personal AI buddy that can listen to you, read documents, and give smart answers!
 
-## 🚀 Key Features
+---
 
-- **Real‑time Q&A** using Google Gemini 2.5 Flash
-- **Always‑On Listening** with voice‑activity detection
-- **Screen Vision** – ask “What’s on my screen?”
-- **Glassmorphism UI** – translucent, resizable overlay
-- **Portable Windows executable** (`Wieesion Setup 1.0.0.exe`)
+## ✨ What Can Adilectus Do?
 
-## 🛠️ Installation (Development)
+### 1. 🗣️ Voice Queries (Speak and Get Answers)
+- Just speak your question, and Adilectus will answer you!
+- Works completely offline using local speech recognition
+- Super fast responses using AI models
 
-1. **Prerequisites**
-   - Windows 10/11 (x64)
-   - Node.js v16+ (for building only)
-   - Python 3.10+ (if any native backend deps are needed)
-2. **Clone the repository**
-   ```bash
-   git clone https://github.com/GEEGEEGOOGOO/InterviewBuddy.git
-   cd InterviewBuddy
-   ```
-3. **Install dependencies**
-   ```bash
-   npm install          # root dependencies
-   cd server && npm install   # backend dependencies
-   ```
-4. **Configure environment variables**
-   Create a `.env` file inside `server/`:
-   ```env
-   GEMINI_API_KEY=your_gemini_key
-   OPENAI_API_KEY=your_openai_key
-   GROQ_API_KEY=your_groq_key   # optional
-   PORT=3000
-   GEMINI_MODEL=gemini-2.5-flash
-   ```
-5. **Run the app in development**
-   ```bash
-   npm start
-   ```
-   The Electron overlay will appear and the backend server will listen on the configured port.
+### 2. 📄 Document Analysis (Upload and Understand)
+- Upload PDF files and get instant summaries
+- Ask questions about your documents
+- Extract key points automatically
 
-## 📦 Portable Build (Production)
+### 3. 🖼️ Screen Capture Analysis
+- Capture your screen and ask questions about what you see
+- Perfect for understanding diagrams, code, or any visual content
 
-1. **Build the installer**
-   ```bash
-   npm run build   # runs electron‑builder
-   ```
-   After the build finishes, the `dist` folder will contain `Wieesion Setup 1.0.0.exe`.
-2. **Distribute the `.exe`**
-   - No Node.js or other runtime is required on the target machine.
-   - Double‑click the installer to install the app (or run the executable directly).
-3. **Running the portable version**
-   ```bash
-   cd dist
-   "Wieesion Setup 1.0.0.exe"
-   ```
-   The app stores its SQLite database and temporary audio files in the user’s AppData directory, so it works out‑of‑the‑box on any Windows laptop.
+### 4. 💬 Smart Chat
+- Have natural conversations with AI
+- Remembers context from your previous questions
+- Switch between different AI models (Groq, Gemini)
 
-## ▶️ Usage (Both Development & Portable)
+---
 
-- **Start the app** (development) – `npm start`
-- **Start the app** (portable) – launch the installed `.exe`
-- **Controls**
-  - Mic icon – toggle recording / always‑on mode
-  - "What's on my screen?" – trigger visual analysis
-  - End Call – generate meeting summary and follow‑up draft
-  - `Ctrl+Shift+V` – toggle stealth visibility
+## 🎬 Demo & Tutorial
 
-## 🏗️ Tech Stack
-- **Frontend:** Electron, HTML5, CSS3 (glassmorphism), vanilla JavaScript
-- **Backend:** Node.js, Express, Socket.IO
-- **AI/ML:** Google Gemini 2.5 Flash (text & vision), OpenAI Whisper (speech‑to‑text)
+### 📹 Video Tutorial
+> **Coming Soon!** A detailed video explaining how to use Adilectus will be added here.
+
+<!-- Add your video link here -->
+<!-- Example: [![Watch Tutorial](thumbnail.jpg)](https://youtube.com/your-video) -->
+
+---
+
+## 📸 Screenshots & Working Demo
+
+### Main Interface
+> **Screenshot coming soon!** The main Adilectus window with voice controls.
+
+<!-- ![Main Interface](screenshots/main-interface.png) -->
+
+### Document Analysis in Action
+> **Screenshot coming soon!** Uploading and analyzing a PDF document.
+
+<!-- ![Document Analysis](screenshots/document-analysis.png) -->
+
+### Voice Query Demo
+> **GIF coming soon!** A working demo of voice queries.
+
+<!-- ![Voice Query Demo](screenshots/voice-demo.gif) -->
+
+---
+
+## 🚀 Quick Start (For Users Who Already Installed)
+
+1. **Launch the App**
+   - Go to your `PROJECT_101` folder
+   - Double-click on **`Launch-App.vbs`**
+   - Wait 5-10 seconds for the app to open
+
+2. **Start Using**
+   - Click the microphone button and speak your question
+   - Or upload a PDF file to analyze
+   - Or capture your screen and ask about it
+
+---
+
+## 🛠️ Features in Detail
+
+### Voice Recognition
+- Uses **Groq Whisper** for super-fast transcription
+- Works in English
+- Automatically filters out background noise
+
+### AI Models
+- **Gemini 2.5 Flash** - For document analysis and vision tasks
+- **Llama 3.1 Instant** - For quick text responses
+- Switch between models based on your needs
+
+### Document Support
+- **PDF Files** - Full text extraction and analysis
+- **Images** - Visual understanding and description
+- **Mixed Content** - Documents with both text and images
+
+---
+
+## 📁 Project Structure
+
+```
+PROJECT_101/
+├── Launch-App.vbs          # 👈 Click this to start the app!
+├── silent-start.bat        # Background startup script
+├── .env                    # Your API keys (keep this private!)
+├── electron/               # Desktop app interface
+├── server/                 # Backend server
+│   ├── services/          # AI services (Gemini, Groq)
+│   ├── routes/            # API endpoints
+│   └── db/                # Local database
+└── temp/                   # Temporary files
+```
+
+---
+
+## 🔑 API Keys Used
+
+Adilectus uses these AI services:
+- **Gemini API** (Google) - For document analysis
+- **Groq API** - For voice transcription and chat
+
+> **Note:** Your API keys are stored safely in the `.env` file and never shared.
+
+---
+
+## ⚙️ Configuration
+
+All settings are in the `.env` file:
+
+```ini
+# AI Models
+GEMINI_MODEL=gemini-2.5-flash
+GROQ_MODEL=llama-3.1-8b-instant
+
+# Server
+PORT=3000
+NODE_ENV=development
+```
+
+---
+
+## 🆘 Troubleshooting
+
+### App Not Starting?
+1. Make sure you double-clicked `Launch-App.vbs`
+2. Wait 10 seconds (server needs time to start)
+3. Check if Node.js is installed (see Installation Guide)
+
+### Voice Not Working?
+1. Check your microphone permissions
+2. Make sure your Groq API key is valid
+3. Speak clearly and wait for the microphone icon to turn green
+
+### Document Upload Failing?
+1. Check your internet connection
+2. Make sure the PDF is not corrupted
+3. Try a smaller file (under 10MB)
+
+---
+
+## 🔒 Privacy & Security
+
+- All processing happens on your computer
+- API calls are encrypted (HTTPS)
+- No data is stored on external servers
+- Your documents are deleted after analysis
+
+---
+
+## 📞 Support
+
+If you face any issues:
+1. Check the **Installation Guide** for setup help
+2. Look at the **Troubleshooting** section above
+3. Make sure all dependencies are installed
+
+---
+
+## 🙏 Credits
+
+Built with:
+- **Electron** - Desktop app framework
+- **Google Gemini** - AI for document analysis
+- **Groq** - Fast AI inference
+- **Node.js** - Backend server
+
+---
+
+## 📄 License
+
+This project is for personal use. Please respect the API terms of service for Gemini and Groq.
 
 
-Wieesion is a stealthy, intelligent overlay assistant designed for interviews and meetings. It provides real-time AI support, screen analysis, and automated post-meeting summaries.
-
-## 🚀 Key Features
-
-### 🧠 Smart Intelligence
-- **Real-time Q&A:** Instant answers to your questions using Google Gemini 2.5 Flash.
-- **Always-On Listening:** Continuous listening mode with **Voice Activity Detection (VAD)**. Automatically detects when you stop speaking (3s silence) and processes your request.
-- **Smart Noise Filter:** Distinguishes between actual questions/commands and background chatter/noise.
-- **Vision Capabilities:** Ask "What's on my screen?" to get instant analysis of shared content, code, or diagrams.
-
-### 🎨 Premium UI
-- **Glassmorphism Design:** Beautiful, translucent floating capsule that blends into your desktop.
-- **Fully Resizable:** 360-degree resizing from any edge or corner.
-- **Compact Mode:** Shrinkable down to a tiny 150x150px micro-player.
-- **Stealth Mode:** Invisible to screen sharing tools (Zoom, Teams, Meet, OBS) and screenshots.
-
-### 📝 Post-Call Automation
-- **Meeting Summary:** Automatically generates structured minutes (Topics, Decisions, Actions) when you end a call.
-- **Follow-up Draft:** Instantly drafts a professional follow-up email based on the conversation.
-
-## 🛠️ Installation
-
-1. **Prerequisites**
-   - Node.js (v16+)
-   - Python 3.10+ (for backend dependencies if needed)
-
-2. **Install Dependencies**
-   ```bash
-   npm install
-   cd server && npm install
-   ```
-
-3. **Configuration**
-   Create a `.env` file in the `server/` directory with your API keys:
-   ```env
-   # AI Providers
-   GEMINI_API_KEY=your_gemini_key_here
-   OPENAI_API_KEY=your_openai_key_here
-   GROQ_API_KEY=your_groq_key_here (Optional)
-   
-   # Settings
-   PORT=3000
-   GEMINI_MODEL=gemini-2.5-flash
-   ```
-
-## ▶️ Usage
-
-1. **Start the App**
-   ```bash
-   npm start
-   ```
-
-2. **Controls**
-   - **Mic Icon:** Toggle recording (Click once for Always-On mode).
-   - **"What's on my screen?":** Triggers visual analysis.
-   - **End Call:** Stops session and generates summary.
-   - **Ctrl+Shift+V:** Toggle visibility (Stealth Mode).
-
-## 🏗️ Tech Stack
-- **Frontend:** Electron, HTML5, CSS3 (Glassmorphism), Vanilla JS
-- **Backend:** Node.js, Socket.IO, Express
-- **AI/ML:** Google Gemini 2.5 Flash (Text & Vision), OpenAI Whisper (STT)

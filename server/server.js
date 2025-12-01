@@ -1,9 +1,36 @@
 // Load environment variables FIRST (before any other imports)
 import dotenv from 'dotenv';
-dotenv.config({ override: true }); // Force .env file to override system environment variables
+import path from 'path';
+import { fileURLToPath } from 'url';
+import dns from 'dns';
+import express from 'express'; // ✅ Added missing import
+
+// Fix #4: Network Debugging & Fixes
+// Force IPv4 first (fixes common Node.js fetch failures)
+try {
+  dns.setDefaultResultOrder('ipv4first');
+  console.log('🌐 DNS Resolution: Set to ipv4first');
+} catch (e) {
+  console.warn('⚠️ Could not set DNS result order:', e.message);
+}
+
+// ⚠️ DEBUG ONLY: Ignore SSL certificate errors
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
+console.log('⚠️ SECURITY WARNING: SSL Certificate verification disabled (NODE_TLS_REJECT_UNAUTHORIZED=0)');
+
+// Get the directory name in ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Force clear existing key to ensure .env is loaded fresh
+if (process.env.GEMINI_API_KEY) delete process.env.GEMINI_API_KEY;
+
+// Load .env from project root (one level up from server/)
+const envPath = path.resolve(__dirname, '..', '.env');
+console.log('🔍 Loading .env from:', envPath);
+dotenv.config({ path: envPath, override: true });
 
 // Now import everything else
-import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import { rateLimit } from 'express-rate-limit';
@@ -70,7 +97,7 @@ app.use('/api/sessions', sessionRoutes);
 // Error handling middleware
 app.use((err, req, res, next) => {
   console.error('Error:', err);
-  
+
   if (err.name === 'ValidationError') {
     return res.status(400).json({
       error: 'Validation Error',
@@ -116,13 +143,13 @@ app.use((req, res) => {
     // Graceful shutdown
     const gracefulShutdown = (signal) => {
       logger.info(`📴 ${signal} received, shutting down gracefully...`);
-      
+
       httpServer.close(() => {
         logger.info('🔌 HTTP server closed');
-        
+
         // Close database connection
         closeDatabase();
-        
+
         logger.info('✅ Graceful shutdown complete');
         process.exit(0);
       });
@@ -139,7 +166,7 @@ app.use((req, res) => {
 
     // Start server
     httpServer.listen(PORT, () => {
-      logger.info('🚀 InterviewBuddy server started successfully', {
+      logger.info('🚀 Adilectus server started successfully', {
         port: PORT,
         environment: process.env.NODE_ENV || 'development',
         websocket: 'enabled'

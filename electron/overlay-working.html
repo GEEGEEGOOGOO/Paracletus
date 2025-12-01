@@ -1,0 +1,1039 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Adilectus</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: transparent;
+      /* Removed black shadow box */
+      color: #ffffff;
+      overflow: hidden;
+      user-select: none;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      padding: 0;
+      /* Remove padding to allow full stretch */
+    }
+
+    .main-card {
+      width: 100%;
+      height: 100%;
+      max-width: none;
+      /* Netflix Black Matte Glass - More opaque (30% increase) */
+      background: rgba(10, 10, 10, 0.88);
+      backdrop-filter: blur(50px) saturate(180%);
+      border-radius: 12px;
+      /* Red/Purple Ambient Border */
+      border: 1px solid rgba(229, 9, 20, 0.3);
+      box-shadow:
+        inset 0 0 40px rgba(229, 9, 20, 0.15),
+        inset 0 0 20px rgba(140, 20, 252, 0.1);
+      overflow: hidden;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Subtle gradient overlay for matte finish */
+    .main-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.03) 0%, transparent 100%);
+      pointer-events: none;
+    }
+
+    .header {
+      padding: 16px 20px;
+      background: rgba(0, 0, 0, 0.4);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: move;
+      -webkit-app-region: drag;
+      position: relative;
+      z-index: 2;
+    }
+
+    .status-indicator {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      font-weight: 600;
+      color: #e5e5e5;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+
+    .status-dot {
+      width: 6px;
+      height: 6px;
+      background: #E50914;
+      /* Netflix Red */
+      border-radius: 50%;
+      box-shadow: 0 0 8px #E50914;
+    }
+
+    .window-controls {
+      display: flex;
+      gap: 8px;
+      -webkit-app-region: no-drag;
+    }
+
+    .window-btn {
+      width: 24px;
+      height: 24px;
+      border: none;
+      background: transparent;
+      color: #808080;
+      cursor: pointer;
+      font-size: 14px;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+    }
+
+    .window-btn:hover {
+      color: #fff;
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    .content {
+      padding: 20px;
+      position: relative;
+      z-index: 1;
+      flex: 1;
+      /* Allow content to expand */
+      overflow-y: auto;
+      /* Scrollable content */
+      display: flex;
+      flex-direction: column;
+    }
+
+    .message-box {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 16px;
+      padding: 16px;
+      margin-bottom: 16px;
+      font-size: 13px;
+      line-height: 1.6;
+      color: #e0e0e0;
+      flex: 1;
+      /* Allow message box to grow */
+      min-height: 100px;
+      max-height: 300px;
+      overflow-y: auto;
+      box-shadow:
+        inset 0 2px 10px rgba(0, 0, 0, 0.2),
+        0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .input-box {
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid rgba(229, 9, 20, 0.3);
+      /* Red border hint */
+      border-radius: 16px;
+      padding: 12px 16px;
+      margin-bottom: 16px;
+      font-size: 12px;
+      line-height: 1.4;
+      color: #b3b3b3;
+      font-style: italic;
+    }
+
+    .error-box {
+      background: rgba(229, 9, 20, 0.1);
+      border: 1px solid rgba(229, 9, 20, 0.3);
+      border-radius: 12px;
+      padding: 12px 14px;
+      margin-bottom: 16px;
+      font-size: 12px;
+      color: #ff9999;
+      display: none;
+    }
+
+    .error-box.active {
+      display: flex;
+    }
+
+    .button-group {
+      display: flex;
+      gap: 10px;
+    }
+
+    .btn {
+      flex: 1;
+      padding: 12px 20px;
+      border: none;
+      border-radius: 30px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .btn-primary {
+      /* Netflix Red Gradient */
+      background: linear-gradient(135deg, #E50914 0%, #B00710 100%);
+      color: #fff;
+      box-shadow: 0 4px 15px rgba(229, 9, 20, 0.4);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 25px rgba(229, 9, 20, 0.6);
+    }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.05);
+      color: #b3b3b3;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.1);
+      color: #fff;
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .recording-indicator {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 10px;
+      background: rgba(229, 9, 20, 0.1);
+      border-radius: 12px;
+      margin-bottom: 16px;
+      font-size: 12px;
+      color: #E50914;
+      font-weight: 600;
+      letter-spacing: 1px;
+    }
+
+    .recording-indicator.active {
+      display: flex;
+    }
+
+    .recording-dot {
+      width: 8px;
+      height: 8px;
+      background: #E50914;
+      border-radius: 50%;
+      animation: pulse 1.5s ease-in-out infinite;
+      box-shadow: 0 0 10px #E50914;
+    }
+
+    @keyframes pulse {
+
+      0%,
+      100% {
+        opacity: 1;
+        transform: scale(1);
+      }
+
+      50% {
+        opacity: 0.5;
+        transform: scale(1.3);
+      }
+    }
+
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: rgba(229, 9, 20, 0.5);
+      border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(229, 9, 20, 0.8);
+    }
+
+    /* Resize Handles */
+    .resizer {
+      position: absolute;
+      z-index: 100;
+      /* background: rgba(255, 0, 0, 0.3); Debugging color */
+    }
+
+    .resizer-n {
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 5px;
+      cursor: ns-resize;
+    }
+
+    .resizer-s {
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 5px;
+      cursor: ns-resize;
+    }
+
+    .resizer-e {
+      top: 0;
+      bottom: 0;
+      right: 0;
+      width: 5px;
+      cursor: ew-resize;
+    }
+
+    .resizer-w {
+      top: 0;
+      bottom: 0;
+      left: 0;
+      width: 5px;
+      cursor: ew-resize;
+    }
+
+    .resizer-ne {
+      top: 0;
+      right: 0;
+      width: 10px;
+      height: 10px;
+      cursor: nesw-resize;
+      z-index: 101;
+    }
+
+    .resizer-nw {
+      top: 0;
+      left: 0;
+      width: 10px;
+      height: 10px;
+      cursor: nwse-resize;
+      z-index: 101;
+    }
+
+    .resizer-se {
+      bottom: 0;
+      right: 0;
+      width: 10px;
+      height: 10px;
+      cursor: nwse-resize;
+      z-index: 101;
+    }
+
+    .resizer-sw {
+      bottom: 0;
+      left: 0;
+      width: 10px;
+      height: 10px;
+      cursor: nesw-resize;
+      z-index: 101;
+    }
+
+    /* Document Mode Styles */
+    .file-upload-zone {
+      border: 2px dashed rgba(229, 9, 20, 0.3);
+      border-radius: 12px;
+      padding: 20px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s;
+      margin-bottom: 16px;
+      display: none;
+    }
+
+    .file-upload-zone.active {
+      display: block;
+    }
+
+    .file-upload-zone:hover {
+      border-color: rgba(229, 9, 20, 0.6);
+      background: rgba(229, 9, 20, 0.05);
+    }
+
+    .file-upload-zone.dragover {
+      border-color: #E50914;
+      background: rgba(229, 9, 20, 0.1);
+    }
+
+    .document-mode {
+      display: none;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 16px;
+      padding: 16px;
+      margin-bottom: 16px;
+      backdrop-filter: blur(10px);
+    }
+
+    .document-mode.active {
+      display: block;
+    }
+
+    .doc-section {
+      margin-bottom: 16px;
+    }
+
+    .doc-section.collapsed .doc-content,
+    .doc-section.collapsed .doc-keypoints {
+      display: none;
+    }
+
+    .doc-section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      padding: 8px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      margin-bottom: 12px;
+    }
+
+    .doc-section-header:hover {
+      background: rgba(255, 255, 255, 0.05);
+      padding: 8px 12px;
+      margin: 0 -12px 12px -12px;
+      border-radius: 8px;
+    }
+
+    .doc-toggle {
+      font-size: 10px;
+      opacity: 0.6;
+    }
+
+    .doc-header {
+      font-size: 11px;
+      font-weight: 600;
+      color: #b3b3b3;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 8px;
+    }
+
+    .doc-content {
+      font-size: 13px;
+      line-height: 1.5;
+      color: #e0e0e0;
+      margin-bottom: 16px;
+    }
+
+    .doc-keypoints {
+      list-style: none;
+      padding: 0;
+      margin: 0 0 16px 0;
+      max-height: 150px;
+      overflow-y: auto;
+    }
+
+    .doc-keypoints li {
+      padding-left: 16px;
+      position: relative;
+      margin-bottom: 6px;
+      font-size: 12px;
+      color: #d0d0d0;
+    }
+
+    .doc-keypoints li:before {
+      content: '•';
+      position: absolute;
+      left: 0;
+      color: #E50914;
+    }
+
+    .doc-input {
+      width: 100%;
+      background: rgba(0, 0, 0, 0.4);
+      border: 1px solid rgba(229, 9, 20, 0.4);
+      border-radius: 12px;
+      padding: 12px;
+      color: #fff;
+      font-size: 12px;
+      font-family: 'Poppins', sans-serif;
+      margin-bottom: 12px;
+      outline: none;
+      backdrop-filter: blur(10px);
+    }
+
+    .doc-input:focus {
+      border-color: #E50914;
+      box-shadow: 0 0 12px rgba(229, 9, 20, 0.3);
+    }
+
+    .doc-answer-section {
+      background: rgba(229, 9, 20, 0.08);
+      border: 1px solid rgba(229, 9, 20, 0.2);
+      border-radius: 12px;
+      padding: 14px;
+      margin-bottom: 12px;
+      display: none;
+      backdrop-filter: blur(10px);
+    }
+
+    .doc-answer-section.active {
+      display: block;
+      animation: slideIn 0.3s ease-out;
+    }
+
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .doc-answer-text {
+      font-size: 13px;
+      line-height: 1.6;
+      color: #f0f0f0;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+
+    .file-input-hidden {
+      display: none;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="main-card">
+    <div class="header">
+      <div class="status-indicator">
+        <span class="status-dot"></span>
+        <span id="status-text">Ready</span>
+      </div>
+      <div class="window-controls">
+        <button class="window-btn" id="minimize-btn">─</button>
+        <button class="window-btn" id="close-btn">×</button>
+      </div>
+    </div>
+
+    <div class="content">
+      <!-- Recording Indicator -->
+      <div class="recording-indicator" id="recording-indicator">
+        <div class="recording-dot"></div>
+        <span>RECORDING</span>
+      </div>
+
+      <!-- Error Box -->
+      <div class="error-box" id="error-box">
+        <span>⚠</span>
+        <span id="error-text"></span>
+      </div>
+
+      <!-- Input/Question Box -->
+      <div class="input-box" id="input-box">"What's on my screen now?"</div>
+
+      <!-- Message/Answer Box -->
+      <div class="message-box" id="message-box">
+        I'm a large language model, I don't have the ability to see or access your screen. I can only respond to the
+        text you type, so I don't have any information about what's currently on your screen.
+      </div>
+
+      <!-- File Upload Zone -->
+      <div class="file-upload-zone" id="file-upload-zone">
+        <div style="font-size: 32px; margin-bottom: 8px;">📄</div>
+        <div style="font-size: 13px; font-weight: 600; margin-bottom: 4px;">Drop a file or click to browse</div>
+        <div style="font-size: 11px; opacity: 0.7;">Supports PDF, DOCX, TXT, CSV, Images</div>
+        <input type="file" id="file-input" class="file-input-hidden"
+          accept=".pdf,.docx,.txt,.csv,.png,.jpg,.jpeg,.webp,.gif">
+      </div>
+
+      <!-- Document Mode View -->
+      <div class="document-mode" id="document-mode">
+        <!-- Document Info Section (Collapsible) -->
+        <div class="doc-section" id="doc-info-section">
+          <div class="doc-section-header" id="doc-info-toggle">
+            <div>
+              <div class="doc-header">📄 Document</div>
+              <div class="doc-content" id="doc-filename" style="margin: 0;"></div>
+            </div>
+            <span class="doc-toggle">▼</span>
+          </div>
+
+          <div class="doc-header">Summary</div>
+          <div class="doc-content" id="doc-summary"></div>
+
+          <div class="doc-header">Key Points</div>
+          <ul class="doc-keypoints" id="doc-keypoints"></ul>
+        </div>
+
+        <!-- Answer Section (Dynamic) -->
+        <div class="doc-answer-section" id="doc-answer-section">
+          <div class="doc-header">Answer</div>
+          <div class="doc-answer-text" id="doc-answer-text"></div>
+        </div>
+
+        <!-- Q&A Input -->
+        <input type="text" class="doc-input" id="doc-question-input"
+          placeholder="Ask a question about this document...">
+        <button class="btn btn-primary" id="doc-ask-btn" style="width: 100%; margin-bottom: 8px;">
+          <span>💬</span>
+          <span>Ask Question</span>
+        </button>
+        <button class="btn btn-secondary" id="doc-close-btn" style="width: 100%;">
+          <span>✖</span>
+          <span>Close Document</span>
+        </button>
+      </div>
+
+      <!-- Buttons -->
+      <div class="button-group">
+        <button class="btn btn-primary" id="main-btn">
+          <span>🎤</span>
+          <span id="btn-text">Start Listening</span>
+        </button>
+        <button class="btn btn-secondary" id="end-btn">
+          <span>📝</span>
+          <span>End Call</span>
+        </button>
+        <button class="btn btn-secondary" id="doc-btn">
+          <span>📄</span>
+          <span>Upload Doc</span>
+        </button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Resize Handles -->
+  <div class="resizer resizer-n" data-direction="n"></div>
+  <div class="resizer resizer-s" data-direction="s"></div>
+  <div class="resizer resizer-e" data-direction="e"></div>
+  <div class="resizer resizer-w" data-direction="w"></div>
+  <div class="resizer resizer-ne" data-direction="ne"></div>
+  <div class="resizer resizer-nw" data-direction="nw"></div>
+  <div class="resizer resizer-se" data-direction="se"></div>
+  <div class="resizer resizer-sw" data-direction="sw"></div>
+  </div>
+  </div>
+
+  <!-- Load Socket.IO from CDN -->
+  <script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
+  <script>
+    let isListening = false;
+    let mediaRecorder = null;
+    let audioChunks = [];
+    let socket = null;
+
+    // UI Elements
+    const statusText = document.getElementById('status-text');
+    const recordingIndicator = document.getElementById('recording-indicator');
+    const inputBox = document.getElementById('input-box');
+    const messageBox = document.getElementById('message-box');
+    const errorBox = document.getElementById('error-box');
+    const errorText = document.getElementById('error-text');
+    const mainBtn = document.getElementById('main-btn');
+    const btnText = document.getElementById('btn-text');
+    const endBtn = document.getElementById('end-btn');
+    const minimizeBtn = document.getElementById('minimize-btn');
+    const closeBtn = document.getElementById('close-btn');
+
+    // Document mode UI elements
+    const docBtn = document.getElementById('doc-btn');
+    const fileUploadZone = document.getElementById('file-upload-zone');
+    const fileInput = document.getElementById('file-input');
+    const documentMode = document.getElementById('document-mode');
+    const docFilename = document.getElementById('doc-filename');
+    const docSummary = document.getElementById('doc-summary');
+    const docKeypoints = document.getElementById('doc-keypoints');
+    const docQuestionInput = document.getElementById('doc-question-input');
+    const docAskBtn = document.getElementById('doc-ask-btn');
+    const docCloseBtn = document.getElementById('doc-close-btn');
+    const docAnswerSection = document.getElementById('doc-answer-section');
+    const docAnswerText = document.getElementById('doc-answer-text');
+    const docInfoSection = document.getElementById('doc-info-section');
+    const docInfoToggle = document.getElementById('doc-info-toggle');
+
+    // Document state
+    let currentDocument = null;
+
+
+    // Initialize
+    document.addEventListener('DOMContentLoaded', () => {
+      console.log('🎤 Overlay loaded - Using OpenAI Whisper');
+      connectToBackend();
+      setupEventListeners();
+    });
+
+    // Connect to backend
+    function connectToBackend() {
+      socket = io('http://localhost:3000', {
+        auth: { token: 'desktop-app-token' }
+      });
+
+      socket.on('connect', () => {
+        console.log('✅ Connected to backend');
+      });
+
+      socket.on('answer_final', (data) => {
+        console.log('💡 Answer received:', data);
+        const answer = data.answer || data.data?.answer;
+        if (answer) {
+          messageBox.textContent = answer;
+          statusText.textContent = 'Ready';
+        }
+      });
+
+      socket.on('transcript_final', (data) => {
+        console.log('📝 Transcript received:', data);
+        if (data.text) {
+          inputBox.textContent = data.text;
+        }
+      });
+
+      socket.on('error', (data) => {
+        console.error('❌ Backend error:', data);
+        showError(data.message || 'Unknown error');
+      });
+
+      // Document mode listeners
+      socket.on('file:summary', (data) => {
+        console.log('📄 Document summary received:', data);
+        currentDocument = data;
+        showDocumentSummary(data);
+      });
+
+      socket.on('file:ready', (data) => {
+        console.log('✅ Document ready:', data);
+        statusText.textContent = 'Ready';
+      });
+
+      socket.on('file:answer', (data) => {
+        console.log('💬 Document answer:', data);
+        // Show answer inline in document mode
+        docAnswerText.textContent = data.answer;
+        docAnswerSection.classList.add('active');
+        // Collapse summary section to make room
+        docInfoSection.classList.add('collapsed');
+        statusText.textContent = 'Ready';
+      });
+
+      socket.on('file:error', (data) => {
+        console.error('❌ File error:', data);
+        showError(data.message);
+        statusText.textContent = 'Ready';
+      });
+    }
+
+    // Setup event listeners
+    function setupEventListeners() {
+      mainBtn.addEventListener('click', () => {
+        if (isListening) {
+          stopListening();
+        } else {
+          startListening();
+        }
+      });
+
+      endBtn.addEventListener('click', () => {
+        if (isListening) stopListening();
+        statusText.textContent = 'Ready';
+        // Clear chat
+        inputBox.textContent = '"What\'s on my screen now?"';
+        messageBox.textContent = 'I\'m a large language model, I don\'t have the ability to see or access your screen. I can only respond to the text you type, so I don\'t have any information about what\'s currently on your screen.';
+      });
+
+      minimizeBtn.addEventListener('click', () => {
+        window.electron.minimizeWindow();
+      });
+
+      closeBtn.addEventListener('click', () => {
+        window.electron.closeWindow();
+      });
+
+      // Document mode handlers
+      docBtn.addEventListener('click', () => {
+        fileUploadZone.classList.toggle('active');
+        documentMode.classList.remove('active');
+        inputBox.style.display = fileUploadZone.classList.contains('active') ? 'none' : 'block';
+        messageBox.style.display = fileUploadZone.classList.contains('active') ? 'none' : 'block';
+      });
+
+      fileUploadZone.addEventListener('click', () => {
+        fileInput.click();
+      });
+
+      fileInput.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (file) {
+          handleFileUpload(file);
+        }
+      });
+
+      // Drag and drop
+      fileUploadZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        fileUploadZone.classList.add('dragover');
+      });
+
+      fileUploadZone.addEventListener('dragleave', () => {
+        fileUploadZone.classList.remove('dragover');
+      });
+
+      fileUploadZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        fileUploadZone.classList.remove('dragover');
+        const file = e.dataTransfer.files[0];
+        if (file) {
+          handleFileUpload(file);
+        }
+      });
+
+      docAskBtn.addEventListener('click', () => {
+        const question = docQuestionInput.value.trim();
+        if (question && socket) {
+          socket.emit('file:ask', { question });
+          statusText.textContent = 'Processing...';
+          docQuestionInput.value = '';
+        }
+      });
+
+      docQuestionInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+          docAskBtn.click();
+        }
+      });
+
+      docCloseBtn.addEventListener('click', () => {
+        documentMode.classList.remove('active');
+        fileUploadZone.classList.remove('active');
+        inputBox.style.display = 'block';
+        messageBox.style.display = 'block';
+        docAnswerSection.classList.remove('active');
+        docInfoSection.classList.remove('collapsed');
+        currentDocument = null;
+      });
+
+      // Toggle document info section
+      docInfoToggle.addEventListener('click', () => {
+        docInfoSection.classList.toggle('collapsed');
+      });
+
+
+      setupResizeHandles();
+    }
+
+    // 8-Directional Resize Logic
+    function setupResizeHandles() {
+      const resizers = document.querySelectorAll('.resizer');
+      let isResizing = false;
+      let startX, startY, startWidth, startHeight, startLeft, startTop;
+      let currentDirection = '';
+
+      resizers.forEach(resizer => {
+        resizer.addEventListener('mousedown', async (e) => {
+          isResizing = true;
+          currentDirection = resizer.dataset.direction;
+          startX = e.screenX;
+          startY = e.screenY;
+
+          // Get current bounds (including position)
+          const bounds = await window.electron.getWindowBounds();
+          startWidth = bounds.width;
+          startHeight = bounds.height;
+          startLeft = bounds.x;
+          startTop = bounds.y;
+
+          document.addEventListener('mousemove', handleMouseMove);
+          document.addEventListener('mouseup', stopResize);
+        });
+      });
+
+      function handleMouseMove(e) {
+        if (!isResizing) return;
+
+        const deltaX = e.screenX - startX;
+        const deltaY = e.screenY - startY;
+
+        let newWidth = startWidth;
+        let newHeight = startHeight;
+        let newX = startLeft;
+        let newY = startTop;
+
+        // Calculate new dimensions and position based on direction
+        if (currentDirection.includes('e')) {
+          newWidth = startWidth + deltaX;
+        }
+        if (currentDirection.includes('s')) {
+          newHeight = startHeight + deltaY;
+        }
+        if (currentDirection.includes('w')) {
+          newWidth = startWidth - deltaX;
+          newX = startLeft + deltaX;
+        }
+        if (currentDirection.includes('n')) {
+          newHeight = startHeight - deltaY;
+          newY = startTop + deltaY;
+        }
+
+        // Send update to main process
+        // Note: Main process handles minWidth/minHeight, but we should try to respect it here too to avoid jumping
+        if (newWidth >= 200 && newHeight >= 200) {
+          window.electron.resizeWindow({ x: newX, y: newY, width: newWidth, height: newHeight });
+        }
+      }
+
+      function stopResize() {
+        isResizing = false;
+        document.removeEventListener('mousemove', handleMouseMove);
+        document.removeEventListener('mouseup', stopResize);
+      }
+    }
+
+    // Start recording
+    async function startListening() {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        mediaRecorder = new MediaRecorder(stream);
+        audioChunks = [];
+
+        mediaRecorder.ondataavailable = (event) => {
+          if (event.data.size > 0) audioChunks.push(event.data);
+        };
+
+        mediaRecorder.onstop = () => {
+          const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+          sendAudio(audioBlob);
+          stream.getTracks().forEach(track => track.stop());
+        };
+
+        mediaRecorder.start();
+        isListening = true;
+        statusText.textContent = 'Listening...';
+        btnText.textContent = 'Stop & Transcribe';
+        recordingIndicator.classList.add('active');
+        console.log('🎤 Recording started');
+
+      } catch (error) {
+        console.error('❌ Microphone error:', error);
+        showError('Could not access microphone');
+      }
+    }
+
+    // Stop recording
+    function stopListening() {
+      if (mediaRecorder && isListening) {
+        mediaRecorder.stop();
+        isListening = false;
+        statusText.textContent = 'Transcribing...';
+        btnText.textContent = 'Start Listening';
+        recordingIndicator.classList.remove('active');
+      }
+    }
+
+    // Send audio to server
+    function sendAudio(blob) {
+      const reader = new FileReader();
+      reader.readAsDataURL(blob);
+      reader.onloadend = () => {
+        const base64Audio = reader.result.split(',')[1];
+        console.log('📤 Sending audio to OpenAI Whisper...');
+        socket.emit('audio_file', {
+          audio: base64Audio,
+          format: 'webm'
+        });
+      };
+    }
+
+    // Show error
+    function showError(message) {
+      errorText.textContent = message;
+      errorBox.classList.add('active');
+      setTimeout(() => errorBox.classList.remove('active'), 5000);
+    }
+
+    // Handle file upload
+    function handleFileUpload(file) {
+      console.log('📎 File selected:', file.name);
+      statusText.textContent = 'Uploading...';
+
+      const reader = new FileReader();
+      reader.onload = () => {
+        const base64 = reader.result.split(',')[1];
+
+        // Send to backend
+        socket.emit('file:upload', {
+          fileData: base64,
+          fileName: file.name,
+          mimeType: file.type
+        });
+
+        // Hide upload zone
+        fileUploadZone.classList.remove('active');
+        statusText.textContent = 'Processing document...';
+      };
+
+      reader.onerror = () => {
+        showError('Failed to read file');
+        statusText.textContent = 'Ready';
+      };
+
+      reader.readAsDataURL(file);
+    }
+
+    // Show document summary
+    function showDocumentSummary(data) {
+      // Update UI
+      docFilename.textContent = data.fileName;
+      docSummary.textContent = data.summary;
+
+      // Update key points
+      docKeypoints.innerHTML = '';
+      if (data.keyPoints && data.keyPoints.length > 0) {
+        data.keyPoints.forEach(point => {
+          const li = document.createElement('li');
+          li.textContent = point;
+          docKeypoints.appendChild(li);
+        });
+      }
+
+      // Hide upload zone, show document mode
+      fileUploadZone.classList.remove('active');
+      documentMode.classList.add('active');
+      inputBox.style.display = 'none';
+      messageBox.style.display = 'none';
+
+      statusText.textContent = 'Ready';
+    }
+
+    console.log('✅ Overlay ready');
+  </script>
+
+</body>
+
+</html>

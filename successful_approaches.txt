@@ -1,0 +1,64 @@
+# Successful Approaches Log
+
+## 1. Speech-to-Text (STT) Integration [2025-11-30]
+
+**Problem:** 
+- Local Whisper (Python) was too slow/complex.
+- Web Speech API (Browser built-in) caused "Network Error" in Electron due to security/connection issues.
+- Groq Whisper was a good option but user preferred OpenAI Whisper.
+
+**Successful Solution:** OpenAI Whisper API (Server-Side)
+
+### Architecture
+1. **Client (Electron Overlay):**
+   - Uses `MediaRecorder` API (not Web Speech API) to capture audio.
+   - Records audio chunks and converts them to a `Blob` (audio/webm).
+   - Sends the blob to the server via Socket.IO event `audio_file`.
+   - **File:** `electron/overlay-working.html`
+
+2. **Server (Node.js):**
+   - Listens for `audio_file` event.
+   - Saves the audio blob to a temporary file.
+   - Uses the `openai` npm library to send the file to OpenAI Whisper API (`whisper-1` model).
+   - Returns the transcription to the client.
+   - **File:** `server/services/websocketServer.js`
+
+### Key Configuration Details
+1. **API Keys:**
+   - `OPENAI_API_KEY` must be set in `.env`.
+   - **Crucial:** Ensure `server/start.js` does NOT delete this key (comment out `delete process.env.OPENAI_API_KEY`).
+
+2. **Manual Backend Startup (Optional but reliable):**
+   - Run backend manually: `cd server && npm start`
+   - Run frontend: `npm start` (in root)
+   - **Note:** `electron/main.js` was modified to skip spawning the backend if running manually.
+
+### Code Snippets
+
+**Client (Recording):**
+```javascript
+// overlay-working.html
+mediaRecorder.onstop = () => {
+  const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+  const reader = new FileReader();
+  reader.readAsDataURL(audioBlob);
+  reader.onloadend = () => {
+    const base64Audio = reader.result.split(',')[1];
+    socket.emit('audio_file', { audio: base64Audio, format: 'webm' });
+  };
+};
+```
+
+**Server (Transcribing):**
+```javascript
+// websocketServer.js
+if (OPENAI_API_KEY) {
+  const openai = new OpenAI({ apiKey: OPENAI_API_KEY.trim() });
+  const transcription = await openai.audio.transcriptions.create({
+    file: fs.createReadStream(tempFile),
+    model: 'whisper-1',
+    language: 'en'
+  });
+  transcript = transcription.text.trim();
+}
+```

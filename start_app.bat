@@ -1,0 +1,6 @@
+@echo off
+echo Starting Backend Server...
+start "Backend Server" cmd /k "cd server && npm start"
+timeout /t 2
+echo Starting Electron App...
+start "Electron App" cmd /k "npm start"
