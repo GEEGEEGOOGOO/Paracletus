@@ -34,6 +34,8 @@ temp/
 *.db
 *.sqlite
 server/db/*.db
+*.db-shm
+*.db-wal
 
 # OS files
 .DS_Store
