@@ -40,6 +40,7 @@ import authRoutes from './routes/auth.js';
 import sessionRoutes from './routes/sessions.js';
 import { initializeWebSocket } from './services/websocketServer.js';
 import { initDatabase, cleanupOldData, closeDatabase } from './db/sqlite.js';
+import { initializeGemini } from './services/geminiService.js'; // Import initializer
 import logger from './logger.js';
 
 // Log environment configuration at startup
@@ -50,6 +51,12 @@ logger.info('🔑 API Keys configured', {
   groqModel: process.env.GROQ_MODEL,
   geminiModel: process.env.GEMINI_MODEL
 });
+
+// Re-initialize Gemini with the fresh API key from .env
+// This fixes the issue where ES module imports load before dotenv.config()
+initializeGemini(process.env.GEMINI_API_KEY);
+logger.info('✅ Gemini Service re-initialized with fresh key');
+
 logger.info('⚙️ Server Configuration', {
   nodeEnv: process.env.NODE_ENV || 'development',
   port: process.env.PORT || 3000,

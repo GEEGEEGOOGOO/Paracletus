@@ -14,6 +14,8 @@ import { fileURLToPath } from 'url';
 import os from 'os';
 import { processFile } from '../handlers/fileProcessor.js';
 import { analyze as analyzeDocument, chat as chatWithDocument } from './documentAI.js';
+import actorManager from './actorManager.js';
+
 
 
 const __filename = fileURLToPath(import.meta.url);
@@ -92,6 +94,9 @@ export const initializeWebSocket = (httpServer) => {
 
     // Document context (for file uploads)
     let fileContext = null;
+
+    // Project files context (for multiple PDF/Image uploads)
+    let projectFiles = [];
 
 
     // Handle authentication
@@ -482,12 +487,9 @@ export const initializeWebSocket = (httpServer) => {
           // ... inside audio_file handler ...
 
           if (transcript) {
-            // 1. Check for Visual Intent (Pass through if visual)
+            // 1. Check for Visual Intent (Log only)
             if (isVisualIntent(transcript)) {
-              console.log('👁️ Visual intent detected in audio - skipping text-only response');
-              // Emit transcript so frontend can handle visual query
-              socket.emit('transcript_final', { text: transcript });
-              return;
+              console.log('👁️ Visual intent detected in audio');
             }
 
             // 2. Smart Filter (Noise Detection)
@@ -511,14 +513,63 @@ export const initializeWebSocket = (httpServer) => {
               console.log('📸 Image detected in request');
             }
 
-            const result = await generateAIResponse(
-              transcript,           // question
-              currentProvider,      // provider (groq or gemini)
-              currentModel,         // model ID
-              conversationHistory,  // conversation history
-              image                 // image (if present)
+            // Build context from uploaded project files
+            let contextualizedQuestion = transcript;
+            if (projectFiles.length > 0) {
+              console.log(`📚 Injecting context from ${projectFiles.length} uploaded file(s)`);
+
+              let contextString = '\n\n--- UPLOADED PROJECT FILES CONTEXT ---\n';
+              projectFiles.forEach((file, index) => {
+                contextString += `\nFile ${index + 1}: ${file.fileName} (${file.fileType})\n`;
+                if (file.fileType === 'PDF') {
+                  // For PDFs, include the extracted text
+                  contextString += `Content: ${file.content.substring(0, 3000)}...\n`;
+                } else {
+                  // For images, include the summary/description
+                  contextString += `Description: ${file.summary}\n`;
+                }
+              });
+              contextString += '\n--- END OF CONTEXT ---\n\n';
+
+              contextualizedQuestion = contextString + 'User Question: ' + transcript;
+            }
+
+            const result = await actorManager.handleQuestion(
+              contextualizedQuestion,  // question with context
+              {
+                provider: currentProvider,
+                model: currentModel,
+                conversationHistory: conversationHistory,
+                image: image
+              }
             );
 
+            // Check verification status (for role mode)
+            if (result.verified === false) {
+              // Out of bounds in role mode
+              console.warn('⚠️ Answer failed verification - returning out of bounds message');
+
+              socket.emit('answer_final', {
+                answer: result.answer, // "Question out of bounds: I don't have that information in the resume."
+                provider: currentProvider,
+                model: currentModel,
+                verified: false
+              });
+
+              // Update conversation history
+              conversationHistory.push({
+                role: 'user',
+                content: transcript
+              });
+              conversationHistory.push({
+                role: 'assistant',
+                content: result.answer
+              });
+
+              return; // Don't process further
+            }
+
+            // Answer verified or not in role mode
             if (result && result.answer) {
               const answer = result.answer;
               console.log('✅ Answer generated:', answer.substring(0, 100) + '...');
@@ -810,6 +861,16 @@ ${analysisContent}`;
             fileType: isPDF ? 'PDF' : 'Image'
           });
 
+          // Store in projectFiles array for future voice queries
+          projectFiles.push({
+            fileName: fileName,
+            fileType: isPDF ? 'PDF' : 'Image',
+            content: analysisContent,
+            summary: answer,
+            timestamp: new Date().toISOString()
+          });
+          console.log(`📚 Stored file in projectFiles. Total files: ${projectFiles.length}`);
+
           // Update conversation history
           conversationHistory.push({
             role: 'user',
@@ -949,6 +1010,112 @@ ${analysisContent}`;
         });
       }
     });
+
+
+
+    // Handle visual query (text + optional image)
+    socket.on('visual_query', async (data) => {
+      try {
+        const { text, image } = data;
+        console.log(`👁️ Visual query received: "${text}"`);
+
+        // Add to history (text only for safety)
+        conversationHistory.push({
+          role: 'user',
+          content: image ? `[Image] ${text}` : text,
+          timestamp: new Date().toISOString()
+        });
+
+        // Determine provider/model based on mode and image presence
+        const currentMode = actorManager.getMode();
+        let provider = 'groq';
+        let model = 'llama-3.1-8b-instant'; // Default general
+
+        if (currentMode === 'coding') {
+          provider = 'gemini';
+          model = 'gemini-2.5-flash';
+        } else if (currentMode === 'document') {
+          provider = 'gemini';
+          model = 'gemini-2.5-flash';
+        }
+
+        // If image is present, ensure we use a vision-capable model
+        if (image) {
+          // Force Gemini for vision for now to ensure stability and compatibility
+          provider = 'gemini';
+          model = 'gemini-2.5-flash';
+        }
+
+        const answerObj = await generateAIResponse(text, provider, model, conversationHistory, image);
+        const answerText = typeof answerObj === 'object' ? answerObj.answer : answerObj;
+
+        // Emit Answer
+        socket.emit('answer_final', {
+          answer: answerText,
+          question: text
+        });
+
+        // Add answer to history
+        conversationHistory.push({
+          role: 'assistant',
+          content: answerText,
+          timestamp: new Date().toISOString()
+        });
+
+      } catch (error) {
+        console.error('Error handling visual query:', error);
+        socket.emit('error', { type: 'llm_error', message: 'Failed to generate answer' });
+      }
+    });
+
+
+    // Switch mode
+    socket.on('mode:switch', (data) => {
+      try {
+        const { mode } = data;
+
+        if (!mode || !['general', 'coding', 'document'].includes(mode)) {
+          socket.emit('error', { message: 'Invalid mode. Must be: general, coding, or document' });
+          return;
+        }
+
+        // Switch mode
+        const previousMode = actorManager.getMode();
+        actorManager.setMode(mode);
+
+        console.log(`🔄 Mode switched: ${previousMode} → ${mode}`);
+
+        socket.emit('mode:switched', {
+          success: true,
+          mode: mode,
+          previousMode: previousMode,
+          message: `Mode switched to ${mode}`
+        });
+
+      } catch (error) {
+        console.error('❌ Mode switch error:', error.message);
+        socket.emit('error', {
+          message: `Failed to switch mode: ${error.message}`
+        });
+      }
+    });
+
+    // Get current mode and role status
+    socket.on('status:get', () => {
+      const mode = actorManager.getMode();
+      const role = actorManager.getRole();
+
+      socket.emit('status:current', {
+        mode: mode,
+        role: role ? {
+          name: role.name,
+          title: role.title,
+          loadedAt: role.loadedAt
+        } : null
+      });
+    });
+
+    // ====== END ROLE ADOPTION EVENTS ======
 
     // Start Session
     socket.on('start_session', () => {
@@ -1330,7 +1497,29 @@ ${analysisContent}`;
         // Use 'groq' for text questions (unless it's visual)
         const provider = isVisualIntent(question) ? 'gemini' : 'groq';
 
-        const answer = await generateAIResponse(question, provider, null, conversationHistory);
+        // Build context from uploaded project files
+        let contextualizedQuestion = question;
+        if (projectFiles.length > 0) {
+          console.log(`📚 Injecting context from ${projectFiles.length} uploaded file(s)`);
+
+          let contextString = '\n\n--- UPLOADED PROJECT FILES CONTEXT ---\n';
+          projectFiles.forEach((file, index) => {
+            contextString += `\nFile ${index + 1}: ${file.fileName} (${file.fileType})\n`;
+            if (file.fileType === 'PDF') {
+              // For PDFs, include the extracted text
+              contextString += `Content: ${file.content.substring(0, 3000)}...\n`;
+            } else {
+              // For images, include the summary/description
+              contextString += `Description: ${file.summary}\n`;
+            }
+          });
+          contextString += '\n--- END OF CONTEXT ---\n\n';
+
+          contextualizedQuestion = contextString + 'User Question: ' + question;
+        }
+
+        const answerObj = await generateAIResponse(contextualizedQuestion, provider, null, conversationHistory);
+        const answer = typeof answerObj === 'object' ? answerObj.answer : answerObj;
 
         // 4. Emit Answer
         socket.emit('answer_final', {

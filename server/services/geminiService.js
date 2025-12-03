@@ -8,7 +8,7 @@ console.log('🤖 Gemini Service - Model:', process.env.GEMINI_MODEL || 'gemini-
 // Initialize Gemini client
 let genAI = null;
 
-const initializeGemini = (apiKey = process.env.GEMINI_API_KEY) => {
+export const initializeGemini = (apiKey = process.env.GEMINI_API_KEY) => {
   if (!apiKey) {
     console.error('❌ Gemini API key not found');
     return false;

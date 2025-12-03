@@ -29,6 +29,10 @@ logToFile(`User Data: ${app.getPath('userData')}`);
 const isDev = require('electron-is-dev');
 const { spawn } = require('child_process');
 
+// Import ScreenCaptureManager
+const ScreenCaptureManager = require('./screenCapture');
+const screenCapture = new ScreenCaptureManager();
+
 // Import invisibility module
 let invisibility = null;
 try {
@@ -323,6 +327,9 @@ app.whenReady().then(async () => {
   // Create overlay window
   createOverlay();
 
+  // Start continuous screen capture
+  screenCapture.startCaptureLoop();
+
   // Global shortcuts
   globalShortcut.register('CommandOrControl+Shift+I', () => {
     if (overlayWindow) {
@@ -428,6 +435,10 @@ ipcMain.handle('get-window-bounds', () => {
 
 // Screen Capture Handler
 const { desktopCapturer } = require('electron');
+
+ipcMain.handle('get-latest-screenshot', () => {
+  return screenCapture.getLatestScreenshot();
+});
 
 ipcMain.handle('capture-screen', async () => {
   try {

@@ -4,9 +4,22 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Adilectus</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
+  <title>Wieesion</title>
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Bangers&family=Poppins:wght@400;600;800&display=swap');
+
+    :root {
+      --spider-red: #e63946;
+      --spider-blue: #06d6a0;
+      --spider-black: #1a1a1a;
+      --spider-white: #f1f1f1;
+      --spider-yellow: #ffd166;
+      --spider-gray: #2d2d2d;
+    }
 
     * {
       margin: 0;
@@ -15,81 +28,64 @@
     }
 
     body {
-      font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      font-family: 'Poppins', sans-serif;
       background: transparent;
-      /* Removed black shadow box */
-      color: #ffffff;
+      color: var(--spider-white);
       overflow: hidden;
       user-select: none;
       display: flex;
       flex-direction: column;
       height: 100vh;
       padding: 0;
-      /* Remove padding to allow full stretch */
     }
 
     .main-card {
       width: 100%;
       height: 100%;
-      max-width: none;
-      /* Netflix Black Matte Glass - More opaque (30% increase) */
-      background: rgba(10, 10, 10, 0.88);
-      backdrop-filter: blur(50px) saturate(180%);
-      border-radius: 12px;
-      /* Red/Purple Ambient Border */
-      border: 1px solid rgba(229, 9, 20, 0.3);
-      box-shadow:
-        inset 0 0 40px rgba(229, 9, 20, 0.15),
-        inset 0 0 20px rgba(140, 20, 252, 0.1);
+      background-color: rgba(13, 13, 13, 0.85);
+      background-image: radial-gradient(rgba(6, 214, 160, 0.3) 1px, transparent 1px);
+      background-size: 20px 20px;
+      border-radius: 16px;
+      border: 2px solid var(--spider-gray);
+      box-shadow: 6px 6px 0px rgba(230, 57, 70, 0.6);
       overflow: hidden;
       position: relative;
       display: flex;
       flex-direction: column;
-    }
-
-    /* Subtle gradient overlay for matte finish */
-    .main-card::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: linear-gradient(180deg, rgba(255, 255, 255, 0.03) 0%, transparent 100%);
-      pointer-events: none;
+      backdrop-filter: blur(12px);
     }
 
     .header {
       padding: 16px 20px;
-      background: rgba(0, 0, 0, 0.4);
-      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      background: rgba(13, 13, 13, 0.6);
+      border-bottom: 2px solid rgba(230, 57, 70, 0.5);
       display: flex;
       justify-content: space-between;
       align-items: center;
       cursor: move;
       -webkit-app-region: drag;
-      position: relative;
-      z-index: 2;
+      z-index: 10;
+      backdrop-filter: blur(10px);
     }
 
     .status-indicator {
       display: flex;
       align-items: center;
       gap: 8px;
-      font-size: 12px;
-      font-weight: 600;
-      color: #e5e5e5;
-      letter-spacing: 0.5px;
-      text-transform: uppercase;
+      font-family: 'Bangers', cursive;
+      font-size: 18px;
+      color: var(--spider-white);
+      letter-spacing: 1px;
+      text-shadow: 2px 2px 0px var(--spider-red), -1px -1px 0px var(--spider-blue);
     }
 
     .status-dot {
-      width: 6px;
-      height: 6px;
-      background: #E50914;
-      /* Netflix Red */
+      width: 10px;
+      height: 10px;
+      background: var(--spider-blue);
+      border: 2px solid var(--spider-gray);
       border-radius: 50%;
-      box-shadow: 0 0 8px #E50914;
+      box-shadow: 0 0 8px rgba(6, 214, 160, 0.5);
     }
 
     .window-controls {
@@ -99,196 +95,277 @@
     }
 
     .window-btn {
-      width: 24px;
-      height: 24px;
-      border: none;
-      background: transparent;
-      color: #808080;
+      width: 28px;
+      height: 28px;
+      border: 2px solid var(--spider-gray);
+      background: rgba(241, 241, 241, 0.9);
+      color: var(--spider-black);
       cursor: pointer;
-      font-size: 14px;
-      transition: all 0.2s;
+      font-weight: 800;
+      font-size: 18px;
+      border-radius: 50%;
       display: flex;
       align-items: center;
       justify-content: center;
-      border-radius: 50%;
+      box-shadow: 2px 2px 0px rgba(26, 26, 26, 0.6);
+      transition: transform 0.1s;
     }
 
     .window-btn:hover {
-      color: #fff;
-      background: rgba(255, 255, 255, 0.1);
+      transform: translate(-1px, -1px);
+      box-shadow: 3px 3px 0px rgba(26, 26, 26, 0.8);
+      background: rgba(255, 209, 102, 0.9);
+    }
+
+    .window-btn:active {
+      transform: translate(1px, 1px);
+      box-shadow: 1px 1px 0px var(--spider-black);
     }
 
     .content {
       padding: 20px;
-      position: relative;
-      z-index: 1;
       flex: 1;
-      /* Allow content to expand */
       overflow-y: auto;
-      /* Scrollable content */
       display: flex;
       flex-direction: column;
+      background: rgba(18, 18, 18, 0.6);
+      backdrop-filter: blur(5px);
     }
 
     .message-box {
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      border-radius: 16px;
+      background: rgba(241, 241, 241, 0.7);
+      border: 2px solid var(--spider-gray);
+      border-radius: 12px;
       padding: 16px;
       margin-bottom: 16px;
-      font-size: 13px;
-      line-height: 1.6;
-      color: #e0e0e0;
+      font-size: 14px;
+      line-height: 1.5;
+      color: #2d2d2d;
       flex: 1;
-      /* Allow message box to grow */
       min-height: 100px;
-      max-height: 300px;
       overflow-y: auto;
-      box-shadow:
-        inset 0 2px 10px rgba(0, 0, 0, 0.2),
-        0 2px 8px rgba(0, 0, 0, 0.1);
+      box-shadow: 3px 3px 0px rgba(26, 26, 26, 0.4);
+      font-weight: 500;
+      backdrop-filter: blur(5px);
     }
 
     .input-box {
-      background: rgba(0, 0, 0, 0.3);
-      border: 1px solid rgba(229, 9, 20, 0.3);
-      /* Red border hint */
-      border-radius: 16px;
+      background: rgba(26, 26, 26, 0.9);
+      border: 2px solid rgba(241, 241, 241, 0.5);
+      border-radius: 12px;
       padding: 12px 16px;
       margin-bottom: 16px;
-      font-size: 12px;
-      line-height: 1.4;
-      color: #b3b3b3;
-      font-style: italic;
+      font-size: 14px;
+      color: var(--spider-blue);
+      font-family: 'Courier New', monospace;
+      font-weight: bold;
+      box-shadow: 3px 3px 0px rgba(230, 57, 70, 0.5);
+      outline: none;
     }
 
-    .error-box {
-      background: rgba(229, 9, 20, 0.1);
-      border: 1px solid rgba(229, 9, 20, 0.3);
-      border-radius: 12px;
-      padding: 12px 14px;
-      margin-bottom: 16px;
-      font-size: 12px;
-      color: #ff9999;
-      display: none;
-    }
-
-    .error-box.active {
-      display: flex;
+    .input-box:focus {
+      border-color: rgba(255, 209, 102, 0.8);
+      box-shadow: 3px 3px 0px rgba(255, 209, 102, 0.6);
     }
 
     .button-group {
       display: flex;
-      gap: 10px;
+      gap: 12px;
     }
 
     .btn {
       flex: 1;
       padding: 12px 20px;
-      border: none;
-      border-radius: 30px;
-      font-size: 12px;
-      font-weight: 700;
+      border: 3px solid var(--spider-black);
+      border-radius: 50px;
+      font-family: 'Bangers', cursive;
+      font-size: 18px;
+      letter-spacing: 1px;
       cursor: pointer;
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
       display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-
-    .btn-primary {
-      /* Netflix Red Gradient */
-      background: linear-gradient(135deg, #E50914 0%, #B00710 100%);
-      color: #fff;
-      box-shadow: 0 4px 15px rgba(229, 9, 20, 0.4);
-    }
-
-    .btn-primary:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 25px rgba(229, 9, 20, 0.6);
-    }
-
-    .btn-secondary {
-      background: rgba(255, 255, 255, 0.05);
-      color: #b3b3b3;
-      border: 1px solid rgba(255, 255, 255, 0.1);
-    }
-
-    .btn-secondary:hover {
-      background: rgba(255, 255, 255, 0.1);
-      color: #fff;
-      border-color: rgba(255, 255, 255, 0.2);
-    }
-
-    .recording-indicator {
-      display: none;
       align-items: center;
       justify-content: center;
       gap: 8px;
-      padding: 10px;
-      background: rgba(229, 9, 20, 0.1);
-      border-radius: 12px;
-      margin-bottom: 16px;
-      font-size: 12px;
-      color: #E50914;
-      font-weight: 600;
-      letter-spacing: 1px;
+      transition: all 0.1s;
+      box-shadow: 4px 4px 0px var(--spider-black);
+      text-transform: uppercase;
     }
 
-    .recording-indicator.active {
+    .btn:active {
+      transform: translate(2px, 2px);
+      box-shadow: 1px 1px 0px rgba(26, 26, 26, 0.5);
+    }
+
+    .btn-primary {
+      background: linear-gradient(90deg, rgba(230, 57, 70, 0.9), rgba(255, 107, 53, 0.9));
+      color: var(--spider-white);
+    }
+
+    .btn-primary:hover {
+      background: linear-gradient(90deg, rgba(255, 72, 87, 0.95), rgba(255, 130, 67, 0.95));
+      transform: translate(-2px, -2px);
+      box-shadow: 5px 5px 0px rgba(26, 26, 26, 0.6);
+    }
+
+    .btn-secondary {
+      background: linear-gradient(90deg, rgba(6, 214, 160, 0.85), rgba(0, 136, 255, 0.85));
+      color: #1a1a1a;
+    }
+
+    .btn-secondary:hover {
+      background: linear-gradient(90deg, rgba(34, 255, 200, 0.9), rgba(34, 170, 255, 0.9));
+      transform: translate(-2px, -2px);
+      box-shadow: 5px 5px 0px rgba(26, 26, 26, 0.6);
+    }
+
+    .mode-selector {
       display: flex;
+      gap: 8px;
+      margin-bottom: 12px;
+      -webkit-app-region: no-drag;
     }
 
-    .recording-dot {
-      width: 8px;
-      height: 8px;
-      background: #E50914;
-      border-radius: 50%;
-      animation: pulse 1.5s ease-in-out infinite;
-      box-shadow: 0 0 10px #E50914;
+    .mode-btn {
+      background: rgba(241, 241, 241, 0.8);
+      border: 2px solid var(--spider-gray);
+      color: #2d2d2d;
+      cursor: pointer;
+      padding: 6px 10px;
+      border-radius: 8px;
+      font-size: 16px;
+      box-shadow: 2px 2px 0px rgba(26, 26, 26, 0.4);
+      transition: all 0.1s;
     }
 
-    @keyframes pulse {
-
-      0%,
-      100% {
-        opacity: 1;
-        transform: scale(1);
-      }
-
-      50% {
-        opacity: 0.5;
-        transform: scale(1.3);
-      }
+    .mode-btn.active {
+      background: rgba(255, 209, 102, 0.9);
+      transform: translate(-1px, -1px);
+      box-shadow: 3px 3px 0px rgba(26, 26, 26, 0.5);
     }
 
-    /* Custom Scrollbar */
+    .document-mode {
+      display: none;
+      background: var(--spider-white);
+      border: 3px solid var(--spider-black);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 16px;
+      box-shadow: 4px 4px 0px var(--spider-black);
+      color: var(--spider-black);
+    }
+
+    .document-mode.active {
+      display: block;
+    }
+
+    .doc-section {
+      margin-bottom: 16px;
+    }
+
+    .doc-section.collapsed .doc-content,
+    .doc-section.collapsed .doc-keypoints {
+      display: none;
+    }
+
+    .doc-section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      padding: 8px 0;
+      border-bottom: 2px dashed var(--spider-black);
+      margin-bottom: 12px;
+    }
+
+    .doc-header {
+      font-family: 'Bangers', cursive;
+      font-size: 16px;
+      color: var(--spider-red);
+      text-transform: uppercase;
+    }
+
+    .doc-content {
+      font-size: 14px;
+      line-height: 1.5;
+      margin-bottom: 12px;
+    }
+
+    .doc-keypoints {
+      list-style: none;
+      padding: 0;
+      margin: 0 0 16px 0;
+    }
+
+    .doc-keypoints li {
+      padding-left: 20px;
+      position: relative;
+      margin-bottom: 6px;
+      font-size: 13px;
+    }
+
+    .doc-keypoints li:before {
+      content: '★';
+      position: absolute;
+      left: 0;
+      color: var(--spider-red);
+      font-size: 14px;
+    }
+
+    .doc-input {
+      width: 100%;
+      background: #eee;
+      border: 2px solid var(--spider-black);
+      border-radius: 8px;
+      padding: 10px;
+      margin-bottom: 10px;
+      font-family: 'Poppins', sans-serif;
+      font-size: 14px;
+      outline: none;
+    }
+
+    .doc-input:focus {
+      border-color: var(--spider-red);
+      box-shadow: 0 0 0 2px rgba(255, 0, 64, 0.2);
+    }
+
+    .doc-answer-section {
+      background: #fff9e6;
+      border: 2px dashed var(--spider-red);
+      border-radius: 8px;
+      padding: 12px;
+      margin-bottom: 12px;
+      display: none;
+    }
+
+    .doc-answer-section.active {
+      display: block;
+    }
+
+    .doc-answer-text {
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+
+
     ::-webkit-scrollbar {
-      width: 8px;
+      width: 10px;
     }
 
     ::-webkit-scrollbar-track {
-      background: rgba(255, 255, 255, 0.05);
-      border-radius: 4px;
+      background: var(--spider-black);
+      border-left: 2px solid var(--spider-white);
     }
 
     ::-webkit-scrollbar-thumb {
-      background: rgba(229, 9, 20, 0.5);
-      border-radius: 4px;
+      background: var(--spider-red);
+      border: 2px solid var(--spider-black);
+      border-radius: 10px;
     }
 
-    ::-webkit-scrollbar-thumb:hover {
-      background: rgba(229, 9, 20, 0.8);
-    }
-
-    /* Resize Handles */
     .resizer {
       position: absolute;
       z-index: 100;
-      /* background: rgba(255, 0, 0, 0.3); Debugging color */
     }
 
     .resizer-n {
@@ -359,287 +436,221 @@
       z-index: 101;
     }
 
-    /* Document Mode Styles */
-    .file-upload-zone {
-      border: 2px dashed rgba(229, 9, 20, 0.3);
-      border-radius: 12px;
-      padding: 20px;
-      text-align: center;
-      cursor: pointer;
-      transition: all 0.3s;
-      margin-bottom: 16px;
+    .hidden {
+      display: none !important;
+    }
+
+    .error-box {
+      background: var(--spider-black);
+      border: 2px solid var(--spider-red);
+      color: var(--spider-red);
+      padding: 10px;
+      border-radius: 8px;
+      margin-bottom: 10px;
       display: none;
+      font-family: 'Bangers', cursive;
+      font-size: 14px;
     }
 
-    .file-upload-zone.active {
-      display: block;
-    }
-
-    .file-upload-zone:hover {
-      border-color: rgba(229, 9, 20, 0.6);
-      background: rgba(229, 9, 20, 0.05);
-    }
-
-    .file-upload-zone.dragover {
-      border-color: #E50914;
-      background: rgba(229, 9, 20, 0.1);
-    }
-
-    .document-mode {
-      display: none;
-      background: rgba(255, 255, 255, 0.03);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      border-radius: 16px;
-      padding: 16px;
-      margin-bottom: 16px;
-      backdrop-filter: blur(10px);
-    }
-
-    .document-mode.active {
-      display: block;
-    }
-
-    .doc-section {
-      margin-bottom: 16px;
-    }
-
-    .doc-section.collapsed .doc-content,
-    .doc-section.collapsed .doc-keypoints {
-      display: none;
-    }
-
-    .doc-section-header {
+    .error-box.active {
       display: flex;
-      justify-content: space-between;
+      gap: 10px;
       align-items: center;
-      cursor: pointer;
-      padding: 8px 0;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-      margin-bottom: 12px;
     }
 
-    .doc-section-header:hover {
-      background: rgba(255, 255, 255, 0.05);
-      padding: 8px 12px;
-      margin: 0 -12px 12px -12px;
+    .recording-indicator {
+      display: none;
+      color: var(--spider-red);
+      font-family: 'Bangers', cursive;
+      font-size: 20px;
+      gap: 10px;
+      margin-bottom: 10px;
+      align-items: center;
+      justify-content: center;
+      padding: 10px;
+      background: rgba(255, 0, 64, 0.1);
+      border: 2px solid var(--spider-red);
       border-radius: 8px;
     }
 
-    .doc-toggle {
-      font-size: 10px;
-      opacity: 0.6;
+    .recording-indicator.active {
+      display: flex;
     }
 
-    .doc-header {
-      font-size: 11px;
-      font-weight: 600;
-      color: #b3b3b3;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      margin-bottom: 8px;
+    .recording-dot {
+      width: 12px;
+      height: 12px;
+      background: var(--spider-red);
+      border-radius: 50%;
+      animation: pulse 1s infinite;
+      box-shadow: 0 0 10px var(--spider-red);
     }
 
-    .doc-content {
-      font-size: 13px;
-      line-height: 1.5;
-      color: #e0e0e0;
-      margin-bottom: 16px;
-    }
+    @keyframes pulse {
 
-    .doc-keypoints {
-      list-style: none;
-      padding: 0;
-      margin: 0 0 16px 0;
-      max-height: 150px;
-      overflow-y: auto;
-    }
-
-    .doc-keypoints li {
-      padding-left: 16px;
-      position: relative;
-      margin-bottom: 6px;
-      font-size: 12px;
-      color: #d0d0d0;
-    }
-
-    .doc-keypoints li:before {
-      content: '•';
-      position: absolute;
-      left: 0;
-      color: #E50914;
-    }
-
-    .doc-input {
-      width: 100%;
-      background: rgba(0, 0, 0, 0.4);
-      border: 1px solid rgba(229, 9, 20, 0.4);
-      border-radius: 12px;
-      padding: 12px;
-      color: #fff;
-      font-size: 12px;
-      font-family: 'Poppins', sans-serif;
-      margin-bottom: 12px;
-      outline: none;
-      backdrop-filter: blur(10px);
-    }
-
-    .doc-input:focus {
-      border-color: #E50914;
-      box-shadow: 0 0 12px rgba(229, 9, 20, 0.3);
-    }
-
-    .doc-answer-section {
-      background: rgba(229, 9, 20, 0.08);
-      border: 1px solid rgba(229, 9, 20, 0.2);
-      border-radius: 12px;
-      padding: 14px;
-      margin-bottom: 12px;
-      display: none;
-      backdrop-filter: blur(10px);
-    }
-
-    .doc-answer-section.active {
-      display: block;
-      animation: slideIn 0.3s ease-out;
-    }
-
-    @keyframes slideIn {
-      from {
-        opacity: 0;
-        transform: translateY(-10px);
-      }
-
-      to {
+      0%,
+      100% {
+        transform: scale(1);
         opacity: 1;
-        transform: translateY(0);
+      }
+
+      50% {
+        transform: scale(1.3);
+        opacity: 0.7;
       }
     }
 
-    .doc-answer-text {
-      font-size: 13px;
+    /* Markdown content styling */
+    .markdown-content p {
+      margin-bottom: 0.75em;
       line-height: 1.6;
-      color: #f0f0f0;
-      max-height: 200px;
-      overflow-y: auto;
     }
 
-    .file-input-hidden {
-      display: none;
+    .markdown-content code {
+      background: rgba(0, 0, 0, 0.1);
+      padding: 2px 4px;
+      border-radius: 3px;
+      font-family: 'Courier New', monospace;
+      font-size: 0.9em;
+    }
+
+    .markdown-content pre {
+      background: #f5f5f5;
+      padding: 12px;
+      border-radius: 6px;
+      overflow-x: auto;
+      margin: 8px 0;
+      border: 2px solid var(--spider-black);
+    }
+
+    .markdown-content pre code {
+      background: none;
+      padding: 0;
+    }
+
+    .markdown-content ul,
+    .markdown-content ol {
+      padding-left: 1.5em;
+      margin-bottom: 0.75em;
+    }
+
+    .markdown-content h1,
+    .markdown-content h2,
+    .markdown-content h3 {
+      font-weight: 700;
+      margin-top: 1em;
+      margin-bottom: 0.5em;
+      color: var(--spider-red);
+      font-family: 'Bangers', cursive;
     }
   </style>
 </head>
 
 <body>
   <div class="main-card">
+    <!-- Resize Handles -->
+    <div class="resizer resizer-n" data-direction="n"></div>
+    <div class="resizer resizer-s" data-direction="s"></div>
+    <div class="resizer resizer-e" data-direction="e"></div>
+    <div class="resizer resizer-w" data-direction="w"></div>
+    <div class="resizer resizer-ne" data-direction="ne"></div>
+    <div class="resizer resizer-nw" data-direction="nw"></div>
+    <div class="resizer resizer-se" data-direction="se"></div>
+    <div class="resizer resizer-sw" data-direction="sw"></div>
+
+    <!-- Header -->
     <div class="header">
       <div class="status-indicator">
-        <span class="status-dot"></span>
+        <div id="status-dot" class="status-dot"></div>
         <span id="status-text">Ready</span>
       </div>
       <div class="window-controls">
-        <button class="window-btn" id="minimize-btn">─</button>
-        <button class="window-btn" id="close-btn">×</button>
+        <button id="minimize-btn" class="window-btn">_</button>
+        <button id="close-btn" class="window-btn">×</button>
       </div>
     </div>
 
+    <!-- Content -->
     <div class="content">
-      <!-- Recording Indicator -->
-      <div class="recording-indicator" id="recording-indicator">
-        <div class="recording-dot"></div>
-        <span>RECORDING</span>
+
+      <!-- Mode Selector -->
+      <div class="mode-selector">
+        <button class="mode-btn active" id="mode-general" data-mode="general" title="General Mode">
+          <span class="material-icons-round">chat_bubble</span>
+        </button>
+        <button class="mode-btn" id="mode-code" data-mode="coding" title="Code Mode">
+          <span class="material-icons-round">code</span>
+        </button>
+        <button class="mode-btn" id="mode-document" data-mode="document" title="Document Mode">
+          <span class="material-icons-round">description</span>
+        </button>
       </div>
 
-      <!-- Error Box -->
-      <div class="error-box" id="error-box">
-        <span>⚠</span>
-        <span id="error-text"></span>
+      <!-- Message Box -->
+      <div id="message-box" class="message-box">
+        👋 <strong>BAM!</strong> I'm Wieesion. Ask me anything or show me your screen!
       </div>
 
-      <!-- Input/Question Box -->
-      <div class="input-box" id="input-box">"What's on my screen now?"</div>
 
-      <!-- Message/Answer Box -->
-      <div class="message-box" id="message-box">
-        I'm a large language model, I don't have the ability to see or access your screen. I can only respond to the
-        text you type, so I don't have any information about what's currently on your screen.
-      </div>
 
-      <!-- File Upload Zone -->
-      <div class="file-upload-zone" id="file-upload-zone">
-        <div style="font-size: 32px; margin-bottom: 8px;">📄</div>
-        <div style="font-size: 13px; font-weight: 600; margin-bottom: 4px;">Drop a file or click to browse</div>
-        <div style="font-size: 11px; opacity: 0.7;">Supports PDF, DOCX, TXT, CSV, Images</div>
-        <input type="file" id="file-input" class="file-input-hidden"
-          accept=".pdf,.docx,.txt,.csv,.png,.jpg,.jpeg,.webp,.gif">
-      </div>
-
-      <!-- Document Mode View -->
-      <div class="document-mode" id="document-mode">
-        <!-- Document Info Section (Collapsible) -->
-        <div class="doc-section" id="doc-info-section">
+      <!-- Document Mode UI -->
+      <div id="document-mode" class="document-mode">
+        <div id="doc-info-section">
           <div class="doc-section-header" id="doc-info-toggle">
-            <div>
-              <div class="doc-header">📄 Document</div>
-              <div class="doc-content" id="doc-filename" style="margin: 0;"></div>
-            </div>
-            <span class="doc-toggle">▼</span>
+            <div class="doc-header" id="doc-filename">Document.pdf</div>
+            <span class="material-icons-round doc-toggle">expand_less</span>
           </div>
 
-          <div class="doc-header">Summary</div>
-          <div class="doc-content" id="doc-summary"></div>
-
-          <div class="doc-header">Key Points</div>
+          <div class="doc-content" id="doc-summary">Loading summary...</div>
           <ul class="doc-keypoints" id="doc-keypoints"></ul>
         </div>
 
-        <!-- Answer Section (Dynamic) -->
-        <div class="doc-answer-section" id="doc-answer-section">
+        <div id="doc-answer-section" class="doc-answer-section">
           <div class="doc-header">Answer</div>
           <div class="doc-answer-text" id="doc-answer-text"></div>
         </div>
 
-        <!-- Q&A Input -->
-        <input type="text" class="doc-input" id="doc-question-input"
-          placeholder="Ask a question about this document...">
-        <button class="btn btn-primary" id="doc-ask-btn" style="width: 100%; margin-bottom: 8px;">
-          <span>💬</span>
-          <span>Ask Question</span>
-        </button>
-        <button class="btn btn-secondary" id="doc-close-btn" style="width: 100%;">
-          <span>✖</span>
-          <span>Close Document</span>
-        </button>
+        <input type="text" id="doc-question-input" class="doc-input" placeholder="Ask about this document...">
+        <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 8px;">
+          <button id="doc-close-btn" class="btn btn-secondary"
+            style="padding: 8px 16px; font-size: 14px; flex: 0;">Close</button>
+          <button id="doc-ask-btn" class="btn btn-primary"
+            style="padding: 8px 16px; font-size: 14px; flex: 0;">Ask</button>
+        </div>
       </div>
 
-      <!-- Buttons -->
+      <!-- Input Box -->
+      <div id="input-box" class="input-box" contenteditable="true" spellcheck="false">
+        Type your question here...
+      </div>
+
+      <!-- Error Box -->
+      <div id="error-box" class="error-box">
+        <span class="material-icons-round" style="font-size: 16px;">error_outline</span>
+        <span id="error-text">Error message</span>
+      </div>
+
+      <!-- Recording Indicator -->
+      <div id="recording-indicator" class="recording-indicator">
+        <div class="recording-dot"></div>
+        <span>LISTENING...</span>
+      </div>
+
+      <!-- Button Group -->
       <div class="button-group">
-        <button class="btn btn-primary" id="main-btn">
-          <span>🎤</span>
-          <span id="btn-text">Start Listening</span>
+        <button id="main-btn" class="btn btn-primary">
+          <span class="material-icons-round" id="btn-icon">mic</span>
+          <span id="btn-text">Speak</span>
         </button>
-        <button class="btn btn-secondary" id="end-btn">
-          <span>📝</span>
-          <span>End Call</span>
+        <button id="screen-btn" class="btn btn-secondary">
+          <span class="material-icons-round">visibility</span>
+          <span>Screen</span>
         </button>
-        <button class="btn btn-secondary" id="doc-btn">
-          <span>📄</span>
-          <span>Upload Doc</span>
+        <button id="end-btn" class="btn btn-secondary" style="max-width: 50px; padding: 12px 10px;">
+          <span class="material-icons-round">stop</span>
         </button>
       </div>
     </div>
-
-  </div>
-
-  <!-- Resize Handles -->
-  <div class="resizer resizer-n" data-direction="n"></div>
-  <div class="resizer resizer-s" data-direction="s"></div>
-  <div class="resizer resizer-e" data-direction="e"></div>
-  <div class="resizer resizer-w" data-direction="w"></div>
-  <div class="resizer resizer-ne" data-direction="ne"></div>
-  <div class="resizer resizer-nw" data-direction="nw"></div>
-  <div class="resizer resizer-se" data-direction="se"></div>
-  <div class="resizer resizer-sw" data-direction="sw"></div>
-  </div>
   </div>
 
   <!-- Load Socket.IO from CDN -->
@@ -649,6 +660,9 @@
     let mediaRecorder = null;
     let audioChunks = [];
     let socket = null;
+
+    // State
+    let currentMode = 'general';
 
     // UI Elements
     const statusText = document.getElementById('status-text');
@@ -664,9 +678,7 @@
     const closeBtn = document.getElementById('close-btn');
 
     // Document mode UI elements
-    const docBtn = document.getElementById('doc-btn');
-    const fileUploadZone = document.getElementById('file-upload-zone');
-    const fileInput = document.getElementById('file-input');
+    const screenBtn = document.getElementById('screen-btn');
     const documentMode = document.getElementById('document-mode');
     const docFilename = document.getElementById('doc-filename');
     const docSummary = document.getElementById('doc-summary');
@@ -704,7 +716,9 @@
         console.log('💡 Answer received:', data);
         const answer = data.answer || data.data?.answer;
         if (answer) {
-          messageBox.textContent = answer;
+          // Parse Markdown
+          messageBox.innerHTML = marked.parse(answer);
+          messageBox.classList.add('markdown-content');
           statusText.textContent = 'Ready';
         }
       });
@@ -735,10 +749,9 @@
 
       socket.on('file:answer', (data) => {
         console.log('💬 Document answer:', data);
-        // Show answer inline in document mode
-        docAnswerText.textContent = data.answer;
+        docAnswerText.innerHTML = marked.parse(data.answer);
+        docAnswerText.classList.add('markdown-content');
         docAnswerSection.classList.add('active');
-        // Collapse summary section to make room
         docInfoSection.classList.add('collapsed');
         statusText.textContent = 'Ready';
       });
@@ -763,9 +776,8 @@
       endBtn.addEventListener('click', () => {
         if (isListening) stopListening();
         statusText.textContent = 'Ready';
-        // Clear chat
-        inputBox.textContent = '"What\'s on my screen now?"';
-        messageBox.textContent = 'I\'m a large language model, I don\'t have the ability to see or access your screen. I can only respond to the text you type, so I don\'t have any information about what\'s currently on your screen.';
+        inputBox.textContent = 'Type your question here...';
+        messageBox.innerHTML = '👋 <strong>BAM!</strong> I\'m Wieesion. Ask me anything or show me your screen!';
       });
 
       minimizeBtn.addEventListener('click', () => {
@@ -776,43 +788,97 @@
         window.electron.closeWindow();
       });
 
-      // Document mode handlers
-      docBtn.addEventListener('click', () => {
-        fileUploadZone.classList.toggle('active');
-        documentMode.classList.remove('active');
-        inputBox.style.display = fileUploadZone.classList.contains('active') ? 'none' : 'block';
-        messageBox.style.display = fileUploadZone.classList.contains('active') ? 'none' : 'block';
-      });
+      // Screenshot state
+      let pendingScreenshot = null;
 
-      fileUploadZone.addEventListener('click', () => {
-        fileInput.click();
-      });
+      // Screen Query Button
+      screenBtn.addEventListener('click', async () => {
+        console.log('👁️ Screen query button clicked');
 
-      fileInput.addEventListener('change', (e) => {
-        const file = e.target.files[0];
-        if (file) {
-          handleFileUpload(file);
+        try {
+          const screenshot = await window.electron.getLatestScreenshot();
+          if (!screenshot) {
+            showError('No screen capture available');
+            return;
+          }
+
+          pendingScreenshot = screenshot;
+
+          // Create or update preview element
+          let preview = document.getElementById('screenshot-preview');
+          if (!preview) {
+            preview = document.createElement('div');
+            preview.id = 'screenshot-preview';
+            preview.style.cssText = 'margin: 10px 0; padding: 8px; border: 3px solid var(--spider-yellow); border-radius: 8px; background: rgba(250, 204, 21, 0.1); display: flex; align-items: center; gap: 10px; box-shadow: 2px 2px 0px var(--spider-black);';
+
+            const img = document.createElement('img');
+            img.id = 'screenshot-thumb';
+            img.style.cssText = 'height: 50px; width: auto; border-radius: 4px; border: 2px solid var(--spider-black);';
+            preview.appendChild(img);
+
+            const text = document.createElement('span');
+            text.textContent = '📸 Screenshot attached! Type your question...';
+            text.style.cssText = 'font-size: 13px; font-weight: 600; color: var(--spider-red); font-family: "Bangers", cursive;';
+            preview.appendChild(text);
+
+            const close = document.createElement('span');
+            close.textContent = '×';
+            close.style.cssText = 'margin-left: auto; cursor: pointer; font-size: 24px; padding: 0 8px; color: var(--spider-red); font-weight: bold;';
+            close.onclick = () => {
+              pendingScreenshot = null;
+              preview.style.display = 'none';
+              statusText.textContent = 'Ready';
+            };
+            preview.appendChild(close);
+
+            inputBox.parentNode.insertBefore(preview, inputBox);
+          }
+
+          document.getElementById('screenshot-thumb').src = screenshot;
+          preview.style.display = 'flex';
+
+          statusText.textContent = 'Visual Query Mode';
+          inputBox.textContent = '';
+          inputBox.focus();
+
+        } catch (err) {
+          console.error('Failed to get screenshot:', err);
+          showError('Failed to capture screen');
         }
       });
 
-      // Drag and drop
-      fileUploadZone.addEventListener('dragover', (e) => {
-        e.preventDefault();
-        fileUploadZone.classList.add('dragover');
-      });
+      // Handle Input Box Enter Key
+      inputBox.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+          e.preventDefault();
+          const text = inputBox.textContent.trim();
 
-      fileUploadZone.addEventListener('dragleave', () => {
-        fileUploadZone.classList.remove('dragover');
-      });
+          if (!text) return;
 
-      fileUploadZone.addEventListener('drop', (e) => {
-        e.preventDefault();
-        fileUploadZone.classList.remove('dragover');
-        const file = e.dataTransfer.files[0];
-        if (file) {
-          handleFileUpload(file);
+          if (pendingScreenshot) {
+            console.log('📤 Sending visual query:', text);
+            socket.emit('visual_query', {
+              text: text,
+              image: pendingScreenshot
+            });
+
+            pendingScreenshot = null;
+            const preview = document.getElementById('screenshot-preview');
+            if (preview) preview.style.display = 'none';
+            statusText.textContent = 'Analyzing screen...';
+          } else {
+            socket.emit('visual_query', {
+              text: text,
+              image: null
+            });
+            statusText.textContent = 'Processing...';
+          }
+
+          inputBox.textContent = '';
         }
       });
+
+
 
       docAskBtn.addEventListener('click', () => {
         const question = docQuestionInput.value.trim();
@@ -831,7 +897,6 @@
 
       docCloseBtn.addEventListener('click', () => {
         documentMode.classList.remove('active');
-        fileUploadZone.classList.remove('active');
         inputBox.style.display = 'block';
         messageBox.style.display = 'block';
         docAnswerSection.classList.remove('active');
@@ -839,13 +904,47 @@
         currentDocument = null;
       });
 
-      // Toggle document info section
       docInfoToggle.addEventListener('click', () => {
         docInfoSection.classList.toggle('collapsed');
       });
 
-
       setupResizeHandles();
+      setupModeSwitching();
+    }
+
+    // Mode Switching Logic
+    function setupModeSwitching() {
+      const modeButtons = document.querySelectorAll('.mode-btn');
+
+      modeButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+          const mode = btn.dataset.mode;
+
+          // Optimistic update
+          currentMode = mode;
+          updateModeButtons(mode);
+          statusText.textContent = `Mode: ${mode.charAt(0).toUpperCase() + mode.slice(1)}`;
+
+          if (socket) {
+            socket.emit('mode:switch', { mode: mode });
+          }
+        });
+      });
+
+      socket.on('mode:switched', (data) => {
+        if (currentMode !== data.mode) {
+          currentMode = data.mode;
+          updateModeButtons(data.mode);
+          statusText.textContent = `Mode: ${data.mode}`;
+        }
+      });
+    }
+
+    function updateModeButtons(activeMode) {
+      document.querySelectorAll('.mode-btn').forEach(btn => {
+        if (btn.dataset.mode === activeMode) btn.classList.add('active');
+        else btn.classList.remove('active');
+      });
     }
 
     // 8-Directional Resize Logic
@@ -862,7 +961,6 @@
           startX = e.screenX;
           startY = e.screenY;
 
-          // Get current bounds (including position)
           const bounds = await window.electron.getWindowBounds();
           startWidth = bounds.width;
           startHeight = bounds.height;
@@ -885,7 +983,6 @@
         let newX = startLeft;
         let newY = startTop;
 
-        // Calculate new dimensions and position based on direction
         if (currentDirection.includes('e')) {
           newWidth = startWidth + deltaX;
         }
@@ -901,8 +998,6 @@
           newY = startTop + deltaY;
         }
 
-        // Send update to main process
-        // Note: Main process handles minWidth/minHeight, but we should try to respect it here too to avoid jumping
         if (newWidth >= 200 && newHeight >= 200) {
           window.electron.resizeWindow({ x: newX, y: newY, width: newWidth, height: newHeight });
         }
@@ -915,7 +1010,6 @@
       }
     }
 
-    // Start recording
     async function startListening() {
       try {
         const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -935,7 +1029,7 @@
         mediaRecorder.start();
         isListening = true;
         statusText.textContent = 'Listening...';
-        btnText.textContent = 'Stop & Transcribe';
+        btnText.textContent = 'Stop';
         recordingIndicator.classList.add('active');
         console.log('🎤 Recording started');
 
@@ -945,74 +1039,45 @@
       }
     }
 
-    // Stop recording
     function stopListening() {
       if (mediaRecorder && isListening) {
         mediaRecorder.stop();
         isListening = false;
         statusText.textContent = 'Transcribing...';
-        btnText.textContent = 'Start Listening';
+        btnText.textContent = 'Speak';
         recordingIndicator.classList.remove('active');
       }
     }
 
-    // Send audio to server
     function sendAudio(blob) {
       const reader = new FileReader();
       reader.readAsDataURL(blob);
-      reader.onloadend = () => {
+      reader.onloadend = async () => {
         const base64Audio = reader.result.split(',')[1];
         console.log('📤 Sending audio to OpenAI Whisper...');
+
+        // Do NOT attach screenshot for voice queries
+        // Screenshots are only used when Screen button is explicitly clicked
         socket.emit('audio_file', {
           audio: base64Audio,
-          format: 'webm'
+          format: 'webm',
+          image: null
         });
       };
     }
 
-    // Show error
     function showError(message) {
       errorText.textContent = message;
       errorBox.classList.add('active');
       setTimeout(() => errorBox.classList.remove('active'), 5000);
     }
 
-    // Handle file upload
-    function handleFileUpload(file) {
-      console.log('📎 File selected:', file.name);
-      statusText.textContent = 'Uploading...';
 
-      const reader = new FileReader();
-      reader.onload = () => {
-        const base64 = reader.result.split(',')[1];
 
-        // Send to backend
-        socket.emit('file:upload', {
-          fileData: base64,
-          fileName: file.name,
-          mimeType: file.type
-        });
-
-        // Hide upload zone
-        fileUploadZone.classList.remove('active');
-        statusText.textContent = 'Processing document...';
-      };
-
-      reader.onerror = () => {
-        showError('Failed to read file');
-        statusText.textContent = 'Ready';
-      };
-
-      reader.readAsDataURL(file);
-    }
-
-    // Show document summary
     function showDocumentSummary(data) {
-      // Update UI
       docFilename.textContent = data.fileName;
       docSummary.textContent = data.summary;
 
-      // Update key points
       docKeypoints.innerHTML = '';
       if (data.keyPoints && data.keyPoints.length > 0) {
         data.keyPoints.forEach(point => {
@@ -1022,8 +1087,6 @@
         });
       }
 
-      // Hide upload zone, show document mode
-      fileUploadZone.classList.remove('active');
       documentMode.classList.add('active');
       inputBox.style.display = 'none';
       messageBox.style.display = 'none';
@@ -1031,7 +1094,7 @@
       statusText.textContent = 'Ready';
     }
 
-    console.log('✅ Overlay ready');
+    console.log('✅ Overlay ready - Spider-Verse Mode Activated! 🕷️');
   </script>
 
 </body>

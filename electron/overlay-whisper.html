@@ -456,6 +456,78 @@
     .resize-handle:hover {
       background: rgba(59, 130, 246, 0.2);
     }
+
+    /* Mode Selector */
+    .mode-selector {
+      display: flex;
+      gap: 4px;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 8px;
+      padding: 4px;
+    }
+
+    .mode-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-secondary);
+      cursor: pointer;
+      padding: 6px 10px;
+      border-radius: 6px;
+      font-size: 16px;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .mode-btn:hover {
+      background: rgba(255, 255, 255, 0.1);
+      color: var(--text-primary);
+    }
+
+    .mode-btn.active {
+      background: var(--accent-primary);
+      color: white;
+      box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+    }
+
+    /* Role Chip */
+    .role-chip {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: linear-gradient(135deg, rgba(139, 92, 246, 0.2), rgba(168, 85, 247, 0.2));
+      border: 1px solid rgba(168, 85, 247, 0.4);
+      border-radius: 8px;
+      padding: 6px 12px;
+      font-size: 12px;
+      color: var(--text-primary);
+      animation: fadeIn 0.3s ease;
+    }
+
+    .role-chip #role-name {
+      font-weight: 600;
+      color: #c4b5fd;
+    }
+
+    .role-action-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-secondary);
+      cursor: pointer;
+      padding: 4px;
+      font-size: 14px;
+      border-radius: 4px;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .role-action-btn:hover {
+      background: rgba(255, 255, 255, 0.1);
+      color: var(--text-primary);
+    }
   </style>
 </head>
 
@@ -481,6 +553,21 @@
           <span>👁️</span> Vision
         </div>
       </div>
+
+      <!-- Mode Selector -->
+      <div class="mode-selector" id="mode-selector">
+        <button class="mode-btn active" data-mode="general" title="General AI">🌐</button>
+        <button class="mode-btn" data-mode="coding" title="Coding Assistant">💻</button>
+        <button class="mode-btn" data-mode="role" title="Role Adoption">🎭</button>
+      </div>
+
+      <!-- Role Chip (hidden by default) -->
+      <div class="role-chip hidden" id="role-chip">
+        <span id="role-name">—</span>
+        <button class="role-action-btn" id="switch-allrounder" title="Switch to All-Rounder">🔄</button>
+        <button class="role-action-btn" id="clear-role" title="Clear Role">×</button>
+      </div>
+
       <div class="controls">
         <button class="icon-btn" id="minimize-btn" title="Minimize">−</button>
         <button class="icon-btn" id="close-btn" title="Close">×</button>
@@ -1069,6 +1156,7 @@
     }
 
   </script>
+  <script src="role-adoption-client.js"></script>
 </body>
 
 </html>
