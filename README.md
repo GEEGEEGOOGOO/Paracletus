@@ -85,7 +85,30 @@
 
 ---
 
-## 🚀 Quick Start (For Users Who Already Installed)
+## 🛠️ Installation (For Developers & New Users)
+
+If you cloned this repository from GitHub, follow these steps to set it up:
+
+1. **Run Setup Script**
+   - Double-click **`setup.bat`** in the project folder.
+   - This will automatically install all necessary dependencies for both the app and the server.
+   - Wait for it to say "Setup Complete!".
+
+2. **Configure API Keys**
+   - Rename `.env.example` to `.env`
+   - Open `.env` with Notepad
+   - Add your API keys:
+     ```ini
+     GEMINI_API_KEY=your_key_here
+     GROQ_API_KEY=your_key_here
+     ```
+
+3. **Launch the App**
+   - Double-click **`Launch-App.vbs`** to start!
+
+---
+
+## 🚀 Quick Start (For Existing Users)
 
 1. **Launch the App**
    - Go to your `PROJECT_101` folder
