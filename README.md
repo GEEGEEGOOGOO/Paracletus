@@ -8,22 +8,51 @@
 
 ### 1. 🗣️ Voice Queries (Speak and Get Answers)
 - Just speak your question, and Adilectus will answer you!
-- Works completely offline using local speech recognition
+- Works with local OpenAI Whisper for offline speech recognition
 - Super fast responses using AI models
+- **NEW:** Voice queries are now independent of screen capture
 
-### 2. 📄 Document Analysis (Upload and Understand)
+### 2. 🎯 Smart Mode Switching
+- **General Mode** - Fast responses using Groq (Llama 3.1) for everyday queries
+- **Code Mode** - Smart coding assistance using Gemini 2.5 Flash
+- **Document Mode** - Advanced document analysis with Gemini
+- Each mode works independently without interference from screen capture
+
+### 3. 🖼️ Screen Capture Analysis (Explicit Vision Mode)
+- Click the dedicated **Screen** button to capture your screen
+- Ask questions about code, diagrams, errors, or any visual content
+- Uses Gemini Vision for reliable image understanding
+- **NEW:** Screen capture is now completely separate from chat/code modes
+- Only activates when you explicitly click the Screen button
+
+### 4. 📄 Document Analysis (Upload and Understand)
 - Upload PDF files and get instant summaries
 - Ask questions about your documents
 - Extract key points automatically
 
-### 3. 🖼️ Screen Capture Analysis
-- Capture your screen and ask questions about what you see
-- Perfect for understanding diagrams, code, or any visual content
-
-### 4. 💬 Smart Chat
+### 5. 💬 Smart Chat
 - Have natural conversations with AI
 - Remembers context from your previous questions
-- Switch between different AI models (Groq, Gemini)
+- Clean conversation history management
+
+---
+
+## 🆕 Recent Updates (December 2025)
+
+### Mode Independence
+- **Decoupled screen capture from chat modes** - General and Code modes now work independently
+- Voice and text queries no longer automatically attach screenshots
+- Screen capture only activates when you click the Screen button
+
+### Bug Fixes
+- Fixed Groq API 400 error by sanitizing conversation history
+- Removed unsupported timestamp properties from API calls
+- Improved error handling for visual queries
+
+### Performance Improvements
+- Forced Gemini for all visual queries to ensure stability
+- Optimized model selection based on query type
+- Enhanced conversation history management
 
 ---
 
@@ -73,18 +102,29 @@
 ## 🛠️ Features in Detail
 
 ### Voice Recognition
-- Uses **Groq Whisper** for super-fast transcription
+- Uses **OpenAI Whisper** (local) for super-fast transcription
 - Works in English
 - Automatically filters out background noise
+- No automatic screenshot attachment - voice is independent
 
 ### AI Models
-- **Gemini 2.5 Flash** - For document analysis and vision tasks
-- **Llama 3.1 Instant** - For quick text responses
-- Switch between models based on your needs
+- **Gemini 2.5 Flash** - Used for:
+  - Code Mode (text queries)
+  - Document Mode
+  - All visual queries (screen capture)
+- **Groq Llama 3.1 Instant** - Used for:
+  - General Mode (text queries)
+  - Fast everyday questions
+- **OpenAI Whisper** - Local speech-to-text transcription
+
+### Model Selection Logic
+- **General Mode + Text**: Groq (fast)
+- **Code Mode + Text**: Gemini (smart)
+- **Any Mode + Screen Capture**: Gemini Vision (reliable)
 
 ### Document Support
 - **PDF Files** - Full text extraction and analysis
-- **Images** - Visual understanding and description
+- **Images** - Visual understanding and description via screen capture
 - **Mixed Content** - Documents with both text and images
 
 ---
@@ -94,11 +134,17 @@
 ```
 PROJECT_101/
 ├── Launch-App.vbs          # 👈 Click this to start the app!
-├── silent-start.bat        # Background startup script
+├── start_all.bat           # Alternative startup script
 ├── .env                    # Your API keys (keep this private!)
 ├── electron/               # Desktop app interface
+│   ├── overlay-working.html # Main UI
+│   ├── screenCapture.js    # Screen capture manager
+│   └── main.js             # Electron main process
 ├── server/                 # Backend server
 │   ├── services/          # AI services (Gemini, Groq)
+│   │   ├── aiService.js   # Main AI routing
+│   │   ├── actorManager.js # Mode management
+│   │   └── websocketServer.js # WebSocket handlers
 │   ├── routes/            # API endpoints
 │   └── db/                # Local database
 └── temp/                   # Temporary files
@@ -109,10 +155,10 @@ PROJECT_101/
 ## 🔑 API Keys Used
 
 Adilectus uses these AI services:
-- **Gemini API** (Google) - For document analysis
-- **Groq API** - For voice transcription and chat
+- **Gemini API** (Google) - For code assistance, document analysis, and vision
+- **Groq API** - For fast text responses and voice transcription
 
-> **Note:** Your API keys are stored safely in the `.env` file and never shared.
+> **Note:** Your API keys are stored safely in the `.env` file and are protected by `.gitignore` to prevent accidental commits.
 
 ---
 
